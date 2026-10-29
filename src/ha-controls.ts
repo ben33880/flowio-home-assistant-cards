@@ -11,6 +11,6 @@ export function ensureHaElements(names:readonly string[]):Promise<void>{
    const constructor=card.constructor as typeof HTMLElement&{getConfigElement?:()=>Promise<HTMLElement>};
    if(constructor.getConfigElement)await constructor.getConfigElement();
   }
-  const unavailable=missing();if(unavailable.length)throw new Error(`Composants HA indisponibles : ${unavailable.join(', ')}`);
+  const unavailable=missing();if(unavailable.length){console.error('[flowio] Composants HA indisponibles :',unavailable);throw new Error(`Composants HA indisponibles : ${unavailable.join(', ')}`);}
  })().catch(error=>{loads.delete(key);throw error;});loads.set(key,promise);return promise;
 }
