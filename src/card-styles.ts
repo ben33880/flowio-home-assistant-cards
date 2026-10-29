@@ -19,6 +19,27 @@ export const poolStyles=css`
 .fio-card .control .details{min-height:44px;gap:10px}.fio-card .control .control-copy{gap:3px}.fio-card .control .control-label{font-size:.8rem;font-weight:500;line-height:1.3}.fio-card .control .control-state{font-size:.7rem;line-height:1.3}.fio-card .control .state-dot{display:none}
 .fio-card .control .icon-plate{width:20px;height:20px;border-radius:0;background:transparent;color:var(--secondary-text-color)}.fio-card .control .icon-plate ha-icon{--mdc-icon-size:19px}
 @container(max-width:440px){.fio-card .equipment-pane .equipment-grid{grid-template-columns:minmax(0,1fr)}}
+.fio-card{box-sizing:border-box;width:100%;max-width:100%;--fio-trim:color-mix(in srgb,var(--divider-color) 75%,var(--fio-water));border:1px solid var(--fio-trim);border-radius:16px;background:color-mix(in srgb,var(--fio-water) 3%,var(--fio-surface));box-shadow:0 2px 8px color-mix(in srgb,var(--primary-text-color) 5%,transparent)}
+.fio-card .hero{background:linear-gradient(115deg,color-mix(in srgb,var(--fio-water) 12%,var(--fio-surface)),var(--fio-surface));border-bottom:1px solid var(--fio-trim)}
+.fio-card .hero-icon{color:var(--fio-water);background:color-mix(in srgb,var(--fio-water) 14%,var(--fio-surface))}
+.fio-card .section-heading h3>ha-icon{color:var(--fio-water)}
+.fio-card .measurement-group,.fio-card .equipment-pane .equipment-grid{background:var(--fio-surface);border-color:var(--fio-trim);border-radius:12px;box-shadow:0 1px 3px color-mix(in srgb,var(--primary-text-color) 4%,transparent)}
+.fio-card .measure{background:linear-gradient(150deg,color-mix(in srgb,var(--fio-accent) 5%,var(--fio-surface)),var(--fio-surface));border-color:color-mix(in srgb,var(--fio-accent) 18%,var(--divider-color));border-radius:11px}
+.fio-card .measure::before{height:2px;opacity:.65}
+.fio-card .measure[data-available=false]{background:var(--fio-surface);border-style:dashed}
+.fio-card .control[data-on=true][data-available=true] .icon-plate{color:var(--fio-accent)}
+@container(max-width:700px){
+.fio-card{--fio-tile-size:calc((100cqi - 54px)/2);border-radius:12px}
+.fio-card .hero{padding:10px;gap:8px}
+.fio-card .body{padding:12px 8px}
+.fio-card .dashboard-top{gap:18px}
+.fio-card .measurement-groups{gap:10px}
+.fio-card .measurement-group{width:100%;padding:8px}
+.fio-card .equipment-pane .equipment-grid{padding:8px}
+.fio-card .equipment-pane .control{width:100%;max-width:none}
+.fio-card .section-heading{margin-bottom:10px}
+.fio-card .measure{padding:9px}
+}
 `;
 export const historyStyles=css`
 .graphs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}.graph{min-width:0;overflow:hidden;border:1px solid var(--divider-color);border-color:color-mix(in srgb,var(--fio-accent) 27%,var(--divider-color));border-radius:18px;background:var(--fio-surface)}.graph-heading{display:flex;align-items:center;gap:10px;padding:15px;background:var(--fio-surface);background:linear-gradient(120deg,color-mix(in srgb,var(--fio-accent) 13%,var(--fio-surface)),var(--fio-surface))}.graph-title{min-width:0;flex:1;font-size:.85rem;font-weight:600}.graph-title small{display:block;color:var(--secondary-text-color);font-size:.65rem;font-weight:400;margin-top:4px}.current{display:flex;flex-direction:column;align-items:flex-end;gap:4px;max-width:45%;padding:6px;border:0;background:transparent;border-radius:10px;overflow-wrap:anywhere}.current strong{font-size:1.05rem}.current small{color:var(--secondary-text-color);font-size:.62rem}.native-frame{min-width:0;--ha-card-background:transparent;--ha-card-border-width:0px;--ha-card-border-radius:0px;--ha-card-box-shadow:none}.native-frame>*{display:block}.message{padding:12px 0;font-size:.85rem;color:var(--secondary-text-color)}.retry{border:1px solid var(--divider-color);border-radius:999px;background:var(--fio-surface);min-height:44px;padding:8px 16px}.history-note{font-size:.7rem;line-height:1.5;color:var(--secondary-text-color);margin-top:20px}
