@@ -12,12 +12,12 @@ var fn=Object.defineProperty;var mn=(n,e)=>()=>(n&&(e=n(n=0)),e);var xn=(n,e)=>{
 .fio-card .measure.gauge-tile{min-height:188px;gap:6px}
 .fio-card .gauge-tile flowio-gauge{flex:none;width:var(--fio-gauge-size);max-width:100%;margin:0 auto}
 .fio-card .metric-head{gap:6px;min-height:24px}.fio-card .metric-head .icon-plate{width:24px;height:24px;border-radius:8px}.fio-card .metric-head ha-icon{--mdc-icon-size:17px}.fio-card .metric-label{font-size:.72rem;line-height:1.25}
+.fio-card .measure.gauge-tile .metric-head{min-height:18px}.fio-card .measure.gauge-tile .metric-head .icon-plate{width:18px;height:18px;border-radius:6px}.fio-card .measure.gauge-tile .metric-head ha-icon{--mdc-icon-size:15px}
 .fio-card .measurement-group{box-sizing:border-box;width:fit-content;max-width:100%;padding:10px}.fio-card .measurement-group h4{margin:0 0 8px}.fio-card .measurement-group .grid{grid-template-columns:repeat(2,minmax(0,var(--fio-tile-size)));gap:10px;justify-content:start}.fio-card [data-measurement-group=pressure] .grid{grid-template-columns:minmax(0,var(--fio-tile-size))}
-.fio-card .measurement-section[data-section=quality] .measurement-group,.fio-card .measurement-section[data-section=pressure] .measurement-group{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
 .fio-card .measure.gauge-tile{padding:8px 4px;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:visible}
 .fio-card .measure.gauge-tile::before{display:none}.fio-card .measure.gauge-tile:hover{transform:none;box-shadow:none}
 .fio-card .grid[data-group=tanks]{grid-template-columns:repeat(auto-fit,minmax(0,var(--fio-tile-size)));gap:10px;justify-content:start}
-.fio-card .body .grid[data-group=tanks]{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.fio-card .measurement-section .measurement-group,.fio-card .body .grid[data-group=tanks]{border-top:2px solid color-mix(in srgb,var(--fio-water) 55%,var(--fio-trim));border-radius:13px;background:linear-gradient(150deg,color-mix(in srgb,var(--fio-water) 4%,var(--fio-panel)),var(--fio-panel))}
 @container(max-width:700px){:host>.hero{padding-inline-start:16px}.fio-card{--fio-tile-size:min(160px,calc((100cqi - 88px)/2))}}
 .fio-card .equipment-pane{container-type:inline-size}.fio-card .equipment-pane .equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
 .fio-card .control{box-sizing:border-box;min-height:53px;padding:4px 0;gap:10px;border:0;border-bottom:1px solid color-mix(in srgb,var(--divider-color) 72%,var(--fio-accent));border-radius:0;background:transparent;box-shadow:none}
