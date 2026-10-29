@@ -45,6 +45,8 @@ jobs:
           path: |
             docs/flowio-pool-card.png
             docs/flowio-history-card.png
+            docs/flowio-pool-card-dark.png
+            docs/flowio-history-card-dark.png
 
   publish-dist:
     needs: check
@@ -80,8 +82,10 @@ jobs:
           test -s dist/flowio-home-assistant-cards.js
           test -s docs/flowio-pool-card.png
           test -s docs/flowio-history-card.png
+          test -s docs/flowio-pool-card-dark.png
+          test -s docs/flowio-history-card-dark.png
           git add -f -- dist/flowio-home-assistant-cards.js
-          git add -- docs/flowio-pool-card.png docs/flowio-history-card.png
+          git add -- docs/flowio-pool-card.png docs/flowio-history-card.png docs/flowio-pool-card-dark.png docs/flowio-history-card-dark.png
           if git diff --cached --quiet; then
             echo 'The published bundle and README screenshot baselines are already up to date.'
             exit 0
