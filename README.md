@@ -2,6 +2,10 @@
 
 Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. Version 0.1.0 en préparation : modifier les fichiers du dépôt ne publie pas une release. La préversion v0.1.0-beta.1 reste indépendante.
 
+![Vue de la carte Flow.io Piscine](docs/1.png)
+
+![Vue de la carte d’historiques Flow.io](docs/2.png)
+
 ## Cartes
 
 - `custom:flowio-pool-card` : jauges pH/ORP/pression, températures, équipements, modes, alarmes, cuves et frise de filtration.
