@@ -6,6 +6,8 @@ Les jauges SVG/Lit proposent arc, indicateur d'aiguille et anneau. Les % de cuve
 
 visuals est facultatif et se règle dans l'éditeur : type tile, arc ou needle, min et max. Préréglages de présentation : pH 0–14, ORP 0–1000, pression 0–3, eau 0–40 et air -10–50. Ce ne sont ni des seuils de qualité, ni des limites matérielles, ni des recommandations de traitement. Adapter les échelles aux unités réellement publiées ; aucune conversion d'unité n'est effectuée. Une consigne pH/ORP est marquée uniquement si elle est sélectionnée, numérique et disponible. Hors échelle, sa valeur est indiquée mais son repère n'est pas dessiné.
 
+Les équipements utilisent un interrupteur compact inspiré de Home Assistant : pastille ronde avec icône d'alimentation, curseur qui se déplace selon l'état, accent du thème quand l'équipement est en marche. Les libellés « Démarrer » et « Arrêter » ne sont plus affichés ; ils restent utilisés dans les attributs d'accessibilité. La confirmation et les commandes switch.turn_on/turn_off restent inchangées.
+
 Les couleurs distinguent les catégories sans inventer de conformité chimique. Les transitions sont courtes et désactivées selon prefers-reduced-motion, y compris dans les jauges. Pas d'animation permanente prétendant confirmer la rotation physique d'une pompe. Les historiques restent natifs HA et affichent une valeur Actuel distincte de la période.
 
 Un thème peut définir flowio-water-color, flowio-air-color, flowio-ph-color, flowio-orp-color et flowio-pressure-color. Les autres couleurs viennent des variables de palette HA puis primary/accent.
