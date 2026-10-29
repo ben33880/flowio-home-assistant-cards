@@ -1,63 +1,10 @@
-import { test, expect } from '@playwright/test';
-test.beforeEach(async ({ page }) => { await page.goto('/demo/'); await expect(page.locator('flowio-pool-card h2')).toHaveText('Piscine · Jardin'); });
-test('chlore : pas de commande électrolyse ou O2', async ({ page }) => {
-  await expect(page.getByRole('button', { name: 'Démarrer Pompe chlore / brome', exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Démarrer Électrolyseur', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Démarrer Pompe oxygène actif', exact: true })).toHaveCount(0);
-});
-test('O2 : masque ORP et commande chlore', async ({ page }) => {
-  await page.locator('#treatment').selectOption('oxygen');
-  await expect(page.getByRole('button', { name: 'Démarrer Pompe oxygène actif', exact: true })).toBeVisible();
-  await expect(page.locator('flowio-pool-card .measure').filter({ hasText: 'ORP' })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Démarrer Pompe chlore / brome', exact: true })).toHaveCount(0);
-});
-test('un clic de consultation ne commande pas', async ({ page }) => {
-  await page.locator('flowio-pool-card .measure').filter({ hasText: 'Eau' }).click();
-  await expect(page.locator('#events')).toContainText('sensor.demo_water');
-  expect(await page.evaluate(() => (window as any).demo.calls.length)).toBe(0);
-});
-test('commande explicite via HA simulé', async ({ page }) => {
-  await page.getByRole('button', { name: 'Démarrer Éclairage', exact: true }).click();
-  await expect.poll(() => page.evaluate(() => (window as any).demo.calls)).toEqual([{domain:'switch',service:'turn_on',data:{entity_id:'switch.demo_lights'}}]);
-});
-test('annuler la confirmation ne commande pas le dosage', async ({ page }) => {
-  page.once('dialog', dialog => dialog.dismiss());
-  await page.getByRole('button', { name: 'Démarrer Pompe chlore / brome', exact: true }).click();
-  expect(await page.evaluate(() => (window as any).demo.calls.length)).toBe(0);
-});
-test('incohérence : désinfection verrouillée', async ({ page }) => {
-  await page.evaluate(() => { const d=(window as any).demo; d.hass.states['select.demo_treatment'].state='Electrolyse'; d.apply(); });
-  await expect(page.getByRole('alert')).toContainText('ne correspond pas');
-  await expect(page.getByRole('button', { name: 'Démarrer Pompe chlore / brome', exact: true })).toBeDisabled();
-});
-test('hors ligne : pas de fausse absence d’alarme et commandes désactivées', async ({ page }) => {
-  await page.locator('#offline').click();
-  await expect(page.locator('flowio-pool-card .status')).toContainText('non disponible');
-  await expect(page.getByRole('button', { name: 'Démarrer Éclairage', exact: true })).toBeDisabled();
-});
-test('alarme visible même si équipements masqués', async ({ page }) => {
-  await page.evaluate(() => { const d=(window as any).demo; d.config.features={filtration:false,ph_control:false,heating:false,robot:false,lighting:false,filling:false}; d.hass.states['binary_sensor.demo_alarm'].state='on'; d.apply(); });
-  await expect(page.locator('flowio-pool-card .status')).toContainText('Alarme active');
-  await expect(page.getByRole('button', { name: 'Démarrer Éclairage', exact: true })).toHaveCount(0);
-});
-test('événement de configuration de l’éditeur', async ({ page }) => {
-  const result=await page.evaluate(async () => {
-    const d=(window as any).demo; const editor=document.createElement('flowio-pool-card-editor') as any;
-    editor.setConfig(d.config);editor.hass=d.card.hass;document.body.append(editor);await editor.updateComplete;
-    let received:any;editor.addEventListener('config-changed',(event:any)=>{received=event.detail.config;});
-    editor.shadowRoot.querySelector('ha-form').dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...d.config,treatment:'oxygen',entities:{...d.config.entities,filtration:null}}},bubbles:true,composed:true}));
-    editor.remove();return {treatment:received?.treatment,cleared:received?.entities.filtration===undefined};
-  });
-  expect(result).toEqual({treatment:'oxygen',cleared:true});
-});
-for (const width of [390,1440]) for (const dark of [false,true]) {
-  test(`capture ${width}px ${dark?'sombre':'clair'}`, async ({ page }, info) => {
-    await page.setViewportSize({width,height:1000});
-    if(dark) await page.locator('#theme').click();
-    const colors=await page.locator('flowio-pool-card h2').evaluate(el=>getComputedStyle(el).color);
-    expect(colors).toBe(dark?'rgb(230, 234, 240)':'rgb(32, 33, 36)');
-    const overflow=await page.locator('flowio-pool-card .body').evaluate(el=>el.scrollWidth>el.clientWidth);
-    expect(overflow).toBe(false);
-    await info.attach('apercu',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});
-  });
-}
+import { test,expect } from '@playwright/test';
+test.beforeEach(async({page})=>{await page.goto('/demo/');await expect(page.locator('flowio-pool-card h2')).toHaveText('Piscine · Jardin');});
+test('le préfixe dirige consultation et commande sans association manuelle',async({page})=>{await page.locator('#prefix').selectOption('piscine');await page.locator('flowio-pool-card .measure').filter({hasText:'Eau'}).click();await expect(page.locator('#events')).toContainText('sensor.piscine_io_wat_tmp');expect(await page.evaluate(()=>(window as any).demo.calls.length)).toBe(0);await page.getByRole('button',{name:'Démarrer Éclairage',exact:true}).click();await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls)).toEqual([{domain:'switch',service:'turn_on',data:{entity_id:'switch.piscine_io_lights'}}]);});
+test('O2 masque les mesures ORP et commandes des autres traitements',async({page})=>{await page.locator('#treatment').selectOption('oxygen');await expect(page.getByRole('button',{name:'Démarrer Pompe oxygène actif',exact:true})).toBeVisible();await expect(page.locator('flowio-pool-card .measure').filter({hasText:'ORP'})).toHaveCount(0);await expect(page.getByRole('button',{name:'Démarrer Électrolyseur',exact:true})).toHaveCount(0);});
+test('annuler la confirmation ne commande pas le dosage',async({page})=>{page.once('dialog',d=>d.dismiss());await page.getByRole('button',{name:'Démarrer Pompe chlore / brome',exact:true}).click();expect(await page.evaluate(()=>(window as any).demo.calls.length)).toBe(0);});
+test('un désaccord bloque ON mais pas OFF',async({page})=>{await page.evaluate(()=>{const d=(window as any).demo;d.hass.states['select.fio_pl_modes_dis'].state='Electrolyse';d.apply();});await expect(page.getByRole('button',{name:'Démarrer Pompe chlore / brome',exact:true})).toBeDisabled();await page.evaluate(()=>{const d=(window as any).demo;d.hass.states['switch.fio_io_chl_pmp'].state='on';d.apply();});await page.getByRole('button',{name:'Arrêter Pompe chlore / brome',exact:true}).click();await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls)).toEqual([{domain:'switch',service:'turn_off',data:{entity_id:'switch.fio_io_chl_pmp'}}]);});
+test('hors ligne : pas de fausse absence d’alarme',async({page})=>{await page.locator('#offline').click();await expect(page.locator('flowio-pool-card .status')).toContainText('non disponible');await expect(page.getByRole('button',{name:'Démarrer Éclairage',exact:true})).toBeDisabled();});
+test('signale une entité manquante sans prendre la variante _2',async({page})=>{await page.evaluate(()=>{const d=(window as any).demo;d.hass.states['switch.fio_io_lights_2']=d.hass.states['switch.fio_io_lights'];delete d.hass.states['switch.fio_io_lights'];d.apply();});await expect(page.getByRole('button',{name:'Démarrer Éclairage',exact:true})).toBeDisabled();await page.locator('flowio-pool-card summary').click();await expect(page.locator('flowio-pool-card .diagnostic').filter({hasText:'switch.fio_io_lights'})).toContainText('Absente');});
+test('éditeur sans sélecteur d’entité et événement par préfixe',async({page})=>{const result=await page.evaluate(async()=>{const d=(window as any).demo,e=document.createElement('flowio-pool-card-editor') as any;e.setConfig(d.config);e.hass=d.card.hass;document.body.append(e);await e.updateComplete;const form=e.shadowRoot.querySelector('ha-form');let received:any;e.addEventListener('config-changed',(event:any)=>received=event.detail.config);const hasEntities=JSON.stringify(form.schema).includes('Association des entités');form.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{...d.config,entity_prefix:'spa'}},bubbles:true,composed:true}));e.remove();return {prefix:received.entity_prefix,manual:'entities' in received,hasEntities};});expect(result).toEqual({prefix:'spa',manual:false,hasEntities:false});});
+for(const width of [390,1440])for(const dark of [false,true])test(`capture ${width}px ${dark?'sombre':'clair'}`,async({page},info)=>{await page.setViewportSize({width,height:1000});if(dark)await page.locator('#theme').click();expect(await page.locator('flowio-pool-card h2').evaluate(el=>getComputedStyle(el).color)).toBe(dark?'rgb(230, 234, 240)':'rgb(32, 33, 36)');expect(await page.locator('flowio-pool-card .body').evaluate(el=>el.scrollWidth>el.clientWidth)).toBe(false);await info.attach('apercu',{body:await page.screenshot({fullPage:true}),contentType:'image/png'});});

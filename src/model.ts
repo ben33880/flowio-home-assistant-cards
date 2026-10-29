@@ -1,51 +1,59 @@
-export type Treatment = 'chlorine' | 'electrolysis' | 'oxygen' | 'none';
-export type Feature = 'filtration' | 'ph_control' | 'heating' | 'robot' | 'lighting' | 'filling';
-export type Role = 'water_temperature' | 'air_temperature' | 'ph' | 'ph_setpoint' | 'orp' | 'orp_setpoint' | 'pressure' | 'filtration' | 'ph_pump' | 'disinfection_pump' | 'electrolyzer' | 'heater' | 'robot' | 'lighting' | 'filling' | 'treatment_type' | 'alarm_active' | 'alarm_count' | 'ph_tank' | 'disinfection_tank';
-export interface EntityState { state: string; attributes: Record<string, unknown>; }
-export interface Hass { states: Record<string, EntityState>; callService(domain: string, service: string, data: Record<string, unknown>): Promise<unknown>; }
-export interface PoolConfig { type: string; title?: string; treatment: Treatment | 'auto'; features: Record<Feature, boolean>; entities: Partial<Record<Role, string>>; show_tanks: boolean; }
-export const FEATURES: ReadonlyArray<readonly [Feature, string]> = [['filtration', 'Filtration'], ['ph_control', 'Correction pH'], ['heating', 'Chauffage'], ['robot', 'Robot'], ['lighting', 'Éclairage'], ['filling', 'Remplissage']];
-export const ROLES: ReadonlyArray<readonly [Role, string, string[]]> = [
-  ['water_temperature', 'Température eau', ['sensor']], ['air_temperature', 'Température air', ['sensor']],
-  ['ph', 'pH', ['sensor']], ['ph_setpoint', 'Consigne pH', ['number']], ['orp', 'ORP', ['sensor']], ['orp_setpoint', 'Consigne ORP', ['number']], ['pressure', 'Pression', ['sensor']],
-  ['filtration', 'Filtration', ['switch']], ['ph_pump', 'Pompe pH', ['switch']], ['disinfection_pump', 'Pompe désinfection', ['switch']], ['electrolyzer', 'Électrolyseur', ['switch']],
-  ['heater', 'Chauffage', ['switch']], ['robot', 'Robot', ['switch']], ['lighting', 'Éclairage', ['switch', 'light']], ['filling', 'Remplissage', ['switch']],
-  ['treatment_type', 'Type de traitement annoncé', ['select']], ['alarm_active', 'Alarme globale', ['binary_sensor']], ['alarm_count', 'Nombre d’alarmes', ['sensor']], ['ph_tank', 'Cuve pH', ['sensor']], ['disinfection_tank', 'Cuve désinfection', ['sensor']]
-];
-const TREATMENTS = ['auto', 'chlorine', 'electrolysis', 'oxygen', 'none'];
-function object(value: unknown): Record<string, unknown> { if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Configuration objet attendue'); return value as Record<string, unknown>; }
-export function normalizeConfig(input: unknown): PoolConfig {
-  const raw = object(input);
-  const treatment = raw.treatment ?? 'auto';
-  if (typeof treatment !== 'string' || !TREATMENTS.includes(treatment)) throw new Error('Traitement inconnu');
-  if (raw.title !== undefined && typeof raw.title !== 'string') throw new Error('Titre invalide');
-  if (raw.show_tanks !== undefined && typeof raw.show_tanks !== 'boolean') throw new Error('show_tanks doit être booléen');
-  const supplied = raw.features === undefined ? {} : object(raw.features);
-  const features = {} as Record<Feature, boolean>;
-  for (const [key] of FEATURES) {
-    const value = supplied[key] ?? (key === 'filtration');
-    if (typeof value !== 'boolean') throw new Error(`Option ${key} invalide`);
-    features[key] = value;
-  }
-  const suppliedEntities = raw.entities === undefined ? {} : object(raw.entities);
-  const entities: Partial<Record<Role, string>> = {};
-  for (const [key, , domains] of ROLES) {
-    const id = suppliedEntities[key];
-    if (id === undefined || id === null || id === '') continue;
-    if (typeof id !== 'string' || !/^[a-z_]+\.[a-z0-9_]+$/.test(id) || !domains.includes(id.split('.')[0])) throw new Error(`Entité ${key} invalide`);
-    entities[key] = id;
-  }
-  return { type: 'custom:flowio-pool-card', title: raw.title as string | undefined, treatment: treatment as PoolConfig['treatment'], features, entities, show_tanks: (raw.show_tanks as boolean | undefined) ?? false };
+import { configObject, normalizePrefix, normalizeMeasurements, entityId, type Measurement, type Role, type TankSlots } from './entities';
+export type { Role } from './entities';
+export type Treatment='chlorine'|'electrolysis'|'oxygen'|'none';
+export type Feature='filtration'|'ph_control'|'heating'|'robot'|'lighting'|'filling';
+export interface EntityState { state:string; attributes:Record<string,unknown>; }
+export interface Hass { states:Record<string,EntityState>; callService(domain:string,service:string,data:Record<string,unknown>):Promise<unknown>; }
+export interface PoolConfig { type:string; title:string; entity_prefix:string; treatment:Treatment|'auto'; measurements:Measurement[]; features:Record<Feature,boolean>; show_tanks:boolean; tank_slots:TankSlots; }
+export const FEATURES:ReadonlyArray<readonly [Feature,string]>=[['filtration','Filtration'],['ph_control','Correction pH'],['heating','Chauffage'],['robot','Robot'],['lighting','Éclairage'],['filling','Remplissage']];
+export const TREATMENT_LABELS:Record<Treatment,string>={chlorine:'Chlore / Brome liquide',electrolysis:'Électrolyse',oxygen:'Oxygène actif',none:'Aucune désinfection automatique'};
+export function normalizeConfig(input:unknown):PoolConfig {
+  const raw=configObject(input), treatment=raw.treatment ?? 'auto', title=raw.title ?? 'Piscine';
+  if(typeof treatment!=='string' || !['auto','chlorine','electrolysis','oxygen','none'].includes(treatment)) throw new Error('Traitement inconnu');
+  if(typeof title!=='string') throw new Error('Titre invalide');
+  if(raw.show_tanks!==undefined && typeof raw.show_tanks!=='boolean') throw new Error('show_tanks doit être booléen');
+  const supplied=raw.features===undefined ? {} : configObject(raw.features);
+  const features={} as Record<Feature,boolean>;
+  for(const [key] of FEATURES) { const v=supplied[key]===undefined ? key==='filtration' : supplied[key]; if(typeof v!=='boolean') throw new Error(`Option ${key} invalide`); features[key]=v; }
+  const suppliedSlots=raw.tank_slots===undefined ? {} : configObject(raw.tank_slots);
+  const tank_slots={} as TankSlots;
+  for(const key of ['ph','disinfection'] as const) { const n=suppliedSlots[key] ?? (key==='ph'?1:2); if(typeof n!=='number' || !Number.isInteger(n) || n<0 || n>15) throw new Error('Slot de cuve attendu entre 0 et 15'); tank_slots[key]=n; }
+  return {type:'custom:flowio-pool-card',title,entity_prefix:normalizePrefix(raw.entity_prefix),treatment:treatment as PoolConfig['treatment'],measurements:normalizeMeasurements(raw.measurements,['water_temperature','ph','orp','pressure']),features,show_tanks:raw.show_tanks===true,tank_slots};
 }
-export function available(entity?: EntityState): entity is EntityState { return !!entity && !['unknown', 'unavailable', ''].includes(entity.state); }
-export function parseTreatment(state?: string): Treatment | undefined {
-  const key = state?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  const values: Record<string, Treatment> = { 'chlore/brome': 'chlorine', 'chlorine': 'chlorine', 'electrolyse': 'electrolysis', 'electrolysis': 'electrolysis', 'oxygene actif': 'oxygen', 'oxygen': 'oxygen', 'desactive': 'none', 'none': 'none' };
-  return key !== undefined && Object.prototype.hasOwnProperty.call(values, key) ? values[key] : undefined;
+export function idFor(config:PoolConfig,role:Role) { return entityId(config.entity_prefix,role,config.tank_slots); }
+export function available(state?:EntityState):state is EntityState { return !!state && !['unknown','unavailable',''].includes(state.state); }
+export function entityStatus(state?:EntityState) { return !state ? 'Absente' : available(state) ? 'Présente' : 'Indisponible'; }
+export function parseTreatment(state?:string):Treatment|undefined {
+  const key=state?.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const values:Record<string,Treatment>={'chlore/brome':'chlorine',chlorine:'chlorine',electrolyse:'electrolysis',electrolysis:'electrolysis','oxygene actif':'oxygen',oxygen:'oxygen',desactive:'none',none:'none'};
+  return key!==undefined && Object.prototype.hasOwnProperty.call(values,key) ? values[key] : undefined;
 }
-export function resolveTreatment(config: PoolConfig, hass: Hass) {
-  const id = config.entities.treatment_type;
-  const actual = id ? parseTreatment(hass.states[id]?.state) : undefined;
-  return { selected: config.treatment === 'auto' ? actual : config.treatment, actual, mismatch: config.treatment !== 'auto' && actual !== undefined && actual !== config.treatment };
+export function resolveTreatment(config:PoolConfig,hass:Hass) { const actual=parseTreatment(hass.states[idFor(config,'treatment_type')]?.state); return {selected:config.treatment==='auto'?actual:config.treatment,actual,mismatch:config.treatment!=='auto' && actual!==undefined && actual!==config.treatment}; }
+export function visibleMeasurements(config:PoolConfig,hass:Hass) { const t=resolveTreatment(config,hass).selected; return config.measurements.filter(role=>role!=='orp' || (t!=='oxygen' && t!=='none')); }
+export function controlRoles(config:PoolConfig,hass:Hass):Role[] {
+  const roles:Role[]=[];
+  if(config.features.filtration) roles.push('filtration');
+  if(config.features.ph_control) roles.push('ph_pump');
+  const t=resolveTreatment(config,hass).selected;
+  if(t==='chlorine'||t==='oxygen') roles.push('disinfection_pump');
+  if(t==='electrolysis') roles.push('electrolyzer');
+  if(config.features.heating) roles.push('heater'); if(config.features.robot) roles.push('robot'); if(config.features.lighting) roles.push('lighting'); if(config.features.filling) roles.push('filling');
+  return roles;
 }
-export const TREATMENT_LABELS: Record<Treatment, string> = { chlorine: 'Chlore / Brome liquide', electrolysis: 'Électrolyse', oxygen: 'Oxygène actif', none: 'Aucune désinfection automatique' };
+export function expectedRoles(config:PoolConfig,hass:Hass):Role[] {
+  const roles:Role[]=['alarm_active','alarm_count','treatment_type',...visibleMeasurements(config,hass),...controlRoles(config,hass)];
+  const t=resolveTreatment(config,hass).selected;
+  if(config.features.ph_control) roles.push('ph_setpoint');
+  if(t==='chlorine'||t==='electrolysis') roles.push('orp_setpoint');
+  if(config.show_tanks && config.features.ph_control) roles.push('ph_tank');
+  if(config.show_tanks && (t==='chlorine'||t==='oxygen')) roles.push('disinfection_tank');
+  return [...new Set(roles)];
+}
+export function canCommand(config:PoolConfig,hass:Hass,role:Role):boolean {
+  if(!controlRoles(config,hass).includes(role)) return false;
+  const state=hass.states[idFor(config,role)];
+  if(!available(state) || !['on','off'].includes(state.state)) return false;
+  if(state.state==='on') return true;
+  const t=resolveTreatment(config,hass);
+  return !['disinfection_pump','electrolyzer'].includes(role) || (!!t.selected && t.selected!=='none' && !t.mismatch);
+}

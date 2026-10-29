@@ -1,39 +1,17 @@
-# Développement et essai manuel
+# Développement du format par préfixe
 
-## Environnement
+Node.js 24 via .nvmrc. Utiliser nvm install puis nvm use, npm install, npm test et npm run build. Pour les tests Chromium : npx playwright install chromium puis npm run test:e2e. Le lockfile reste à générer avant de passer à npm ci.
 
-Utiliser Node.js 24. La version majeure est définie dans .nvmrc ; package.json déclare >=24 <25. Avec nvm, exécuter nvm install puis nvm use. Les correctifs de la branche 24 ne sont pas figés.
+## Configuration unique
 
-La CI utilise runs-on: ubuntu-24.04 plutôt que ubuntu-latest pour éviter une migration implicite du système. L'image hébergée continue à recevoir ses mises à jour ; ce label ne garantit pas une reproductibilité octet par octet.
+Il n'existe plus de configuration manuelle des identifiants. Les deux cartes utilisent entity_prefix (fio par défaut) et les suffixes de src/entities.ts. L'ancien champ entities déclenche une erreur explicite. Les exemples YAML et la démonstration utilisent uniquement le nouveau format.
 
-## Commandes
-
-```sh
-npm install
-npm test
-npm run build
-npx playwright install chromium
-npm run test:e2e
-```
-
-Le lockfile reste à générer et versionner. Tant qu'il est absent, la CI utilise npm install et non npm ci.
-
-Le build produit dist/flowio-home-assistant-cards.js avec Lit inclus, sans CDN. La CI conserve le bundle après réussite de toutes les vérifications et joint un rapport navigateur avec les captures. Vérifier les résultats dans GitHub Actions ; aucun succès n'est présumé.
-
-## Démonstration isolée
-
-Lancer npm run demo puis ouvrir http://127.0.0.1:4173/demo/. Les entités et les actions sont simulées. Le serveur écoute uniquement sur la boucle locale. Les tests Chromium vérifient le composant compilé, pas une instance complète de Home Assistant. Le scénario d'éditeur injecte un événement value-changed ; il ne valide pas les sélecteurs ha-form réels.
+Les éditeurs proposent préfixe, mesures métier, traitement et équipements ; la synthèse offre aussi les slots des cuves. Les configurations sérialisées ne contiennent aucun identifiant d'entité complet. Les objets entities des cartes graphiques natives sont une projection interne, pas une option publique des cartes Flow.io.
 
 ## Essai dans Home Assistant
 
-1. Copier le bundle compilé dans config/www/flowio/flowio-home-assistant-cards.js.
-2. Déclarer /local/flowio/flowio-home-assistant-cards.js?v=0.1.0-dev comme ressource JavaScript module.
-3. Ajouter la carte Flow.io Piscine et ouvrir son éditeur visuel.
-4. Associer les entités réelles ; examples/pool.yaml ne détecte pas votre installation.
-5. Vérifier thème clair/sombre, mobile, droits utilisateur, entités absentes, indisponibilité et commandes refusées.
+Après publication du nouveau bundle et rechargement de la ressource, remplacer les anciennes configurations avec examples/pool.yaml ou examples/dashboard-chlorine.yaml. Ne pas attendre une migration automatique. Vérifier le préfixe identique à celui du firmware, ouvrir Configuration pour lire les identifiants attendus, puis contrôler les slots et la diffusion des cuves.
 
-Les commandes de cet essai peuvent agir sur la vraie installation. Ne pas cliquer sur les actionneurs sans vérifier les associations et les conditions de fonctionnement. Les sécurités restent dans le firmware ; une commande acceptée ou un état de sortie ne confirme pas physiquement le fonctionnement.
+Une entité absente n'est jamais remplacée par un nom ressemblant. Un état indisponible n'est pas converti en zéro. Les commandes de dosage/démarrage demandent confirmation et les commandes réelles restent validées par le firmware. Tester d'abord les consultations, sans actionner d'équipement.
 
-## Distribution HACS
-
-Le manifeste est présent, mais aucun bundle n'est encore publié dans une release ou versionné dans dist par ce commit. Un artefact Actions seul n'est pas un paquet installable HACS. Après validation de la CI et de l'essai HA, distribuer le bundle portant exactement le nom flowio-home-assistant-cards.js. Aucune release n'est créée automatiquement.
+La CI reconstruit le bundle après les tests et publie dist/flowio-home-assistant-cards.js sur main. Les tags et releases déjà publiés ne sont ni modifiés ni remplacés ; une nouvelle publication beta est nécessaire pour distribuer cette refonte par release. Les tests simulés ne garantissent pas le rendu de ha-form ou des graphiques natifs dans toutes les versions HA.

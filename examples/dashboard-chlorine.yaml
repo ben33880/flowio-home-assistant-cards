@@ -1,5 +1,4 @@
-# Remplacer les identifiants par ceux de votre installation.
-# Le traitement affiché ne change pas le traitement du firmware.
+# Format par préfixe uniquement. Aucun bloc entities.
 title: Piscine Flow.io
 views:
   - title: Piscine
@@ -12,32 +11,17 @@ views:
         cards:
           - type: custom:flowio-pool-card
             title: Piscine
+            entity_prefix: fio
             treatment: chlorine
             features:
               filtration: true
               ph_control: true
               lighting: true
               robot: true
-            entities:
-              water_temperature: sensor.fio_io_wat_tmp
-              ph: sensor.fio_io_ph
-              orp: sensor.fio_io_orp
-              pressure: sensor.fio_io_psi
-              filtration: switch.fio_io_flt_pmp
-              ph_pump: switch.fio_io_ph_pmp
-              disinfection_pump: switch.fio_io_chl_pmp
-              lighting: switch.fio_io_lights
-              robot: switch.fio_io_robot
-              treatment_type: select.fio_pl_modes_dis
-              alarm_active: binary_sensor.fio_alm_any_active
-              alarm_count: sensor.fio_alm_active_count
       - type: grid
         cards:
           - type: custom:flowio-history-card
             title: Qualité de l’eau · 24 h
+            entity_prefix: fio
             hours_to_show: 24
-            entities:
-              - sensor.fio_io_wat_tmp
-              - sensor.fio_io_ph
-              - sensor.fio_io_orp
-              - sensor.fio_io_psi
+            measurements: [water_temperature, ph, orp, pressure]
