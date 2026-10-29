@@ -1,48 +1,52 @@
 # Flow.io Home Assistant Cards
 
-Cartes de supervision et de pilotage de piscine pour Home Assistant, destinées à une distribution frontend via HACS.
+Première carte de piscine configurable pour Home Assistant, en TypeScript et Lit. Projet de développement destiné à HACS ; aucune release installable n'est encore publiée.
 
-## État du projet
+## Présent dans les sources
 
-Projet en cours de création. Ce premier commit définit le périmètre ; aucune carte fonctionnelle ni release installable n'est encore fournie.
+- `custom:flowio-pool-card` et éditeur visuel avec associations d'entités.
+- Traitement affiché : chlore/brome liquide, électrolyse, oxygène actif, aucun ou suivi automatique du sélecteur Flow.io.
+- Filtration, correction pH, chauffage, robot, éclairage et remplissage optionnels.
+- Mesures, consignes consultables via more-info, cuves estimées optionnelles et état global des alarmes.
+- Commandes explicites via Home Assistant, confirmation pour dosage/remplissage et avertissement si le traitement affiché diffère du contrôleur.
+- Styles utilisant le thème actif, sans Mushroom, card-mod ni connexion directe au broker.
 
-## Objectifs
+La présentation ne modifie jamais silencieusement le traitement du contrôleur. Les sécurités restent gérées par Flow.io. Aucun équipement réel n'est commandé par les tests ou la démonstration.
 
-- Interface professionnelle, responsive et adaptée au thème Home Assistant actif, clair ou sombre.
-- Configuration graphique des entités et des équipements réellement installés.
-- Traitement configurable : chlore/brome liquide, électrolyse, oxygène actif ou aucun.
-- Correction pH indépendante du traitement.
-- Sections optionnelles : chauffage, robot, éclairage, remplissage, cuves, historiques et diagnostics.
-- Consultation des détails au clic et commandes clairement séparées de la consultation.
-- Prise en charge des états indisponibles sans les convertir en zéro.
+## Développement et aperçu
 
-## Architecture prévue
+Node.js 24 est la version du projet, définie dans .nvmrc et package.json. La CI utilise explicitement ubuntu-24.04 pour éviter les migrations implicites de ubuntu-latest. Cela ne fige pas les mises à jour de l'image runner ni les dépendances npm.
 
-- TypeScript et composants Lit.
-- Cartes personnalisées composables dans les dashboards Home Assistant.
-- Éditeur visuel des associations d'entités et des options d'affichage.
-- Manifest HACS et exemples YAML.
-- Tests de configuration et de rendu.
-- Aucune dépendance obligatoire à Mushroom, card-mod ou à un thème particulier.
+```sh
+nvm install
+nvm use
+npm install
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
 
-## Données et commandes
+Pour ouvrir l'aperçu simulé :
 
-Les cartes utiliseront les états, attributs et actions des entités Home Assistant exposées par Flow.io via MQTT Discovery. Elles ne se connecteront pas directement au broker et ne demanderont aucun identifiant MQTT dans le navigateur.
+```sh
+npm run demo
+```
 
-Les associations d'entités seront configurables : aucun préfixe fio ni identifiant historique ne sera obligatoire. Les correspondances devront être validées contre les entités effectivement présentes dans Home Assistant.
+Ouvrir `http://127.0.0.1:4173/demo/`. L'aperçu permet de changer le traitement, le thème et de simuler une indisponibilité. Toutes les mesures sont fictives et les commandes restent dans un journal local. Les couleurs fixes de cette page simulent deux thèmes ; la carte de production utilise les variables du thème HA.
 
-## Traitement et sécurité
+## Validation
 
-La sélection du traitement dans la présentation ne modifiera pas silencieusement la configuration du contrôleur. Un mode automatique pourra suivre l'entité de type de désinfection associée ; un choix manuel incohérent devra être signalé.
+Les tests unitaires couvrent le modèle. Playwright teste le bundle dans Chromium avec un objet hass simulé : filtrage des traitements, commandes, annulation d'une confirmation, alarmes, indisponibilité, propagation de configuration et captures à 390/1440 pixels en clair/sombre. La CI joint les captures à son rapport HTML.
 
-Les équipements absents pourront être masqués, mais les alarmes actives ne devront pas disparaître du fait d'un filtre de présentation. Les sécurités et validations des commandes resteront sous la responsabilité du firmware Flow.io.
+Ces captures ne sont pas des tests de régression par comparaison à des références. Les composants internes HA de l'éditeur ne sont pas reproduits : le test vérifie son événement de configuration, pas le fonctionnement réel des sélecteurs ha-form. Aucun résultat de test n'est présumé ; consulter GitHub Actions. Un essai dans Home Assistant reste indispensable.
 
-## Première version prévue
+## Distribution
 
-1. Synthèse de piscine et mesures essentielles.
-2. Filtration et équipements optionnels.
-3. Traitement adapté à l'installation.
-4. Alarmes et détails des entités.
-5. Éditeur graphique et exemples de dashboards.
+Le manifeste `hacs.json` est fourni. La CI prépare un bundle en artefact si les vérifications passent ; un artefact Actions n'est pas une release HACS. Il reste à distribuer le bundle `flowio-home-assistant-cards.js` dans une release ou dans dist après validation.
 
-Le dépôt firmware Flow.io-Waveshare reste indépendant et n'est pas modifié par ce projet.
+Consulter `docs/DEVELOPMENT.md` et `examples/pool.yaml` pour l'essai manuel. Les identifiants de l'exemple doivent être vérifiés dans votre instance. Le lockfile reste à générer et versionner ; les installations ne sont pas encore figées.
+
+## Suite prévue
+
+Graphiques, cartes spécialisées, liste détaillée d'alarmes, planification O2, forçages temporaires et réglages des appareils à consigne variable. Le firmware Flow.io-Waveshare reste indépendant et n'est pas modifié.

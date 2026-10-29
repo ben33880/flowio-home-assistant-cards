@@ -17,7 +17,7 @@ function object(value: unknown): Record<string, unknown> { if (!value || typeof 
 export function normalizeConfig(input: unknown): PoolConfig {
   const raw = object(input);
   const treatment = raw.treatment ?? 'auto';
-  if (!TREATMENTS.includes(String(treatment))) throw new Error('Traitement inconnu');
+  if (typeof treatment !== 'string' || !TREATMENTS.includes(treatment)) throw new Error('Traitement inconnu');
   if (raw.title !== undefined && typeof raw.title !== 'string') throw new Error('Titre invalide');
   if (raw.show_tanks !== undefined && typeof raw.show_tanks !== 'boolean') throw new Error('show_tanks doit être booléen');
   const supplied = raw.features === undefined ? {} : object(raw.features);
@@ -31,7 +31,7 @@ export function normalizeConfig(input: unknown): PoolConfig {
   const entities: Partial<Record<Role, string>> = {};
   for (const [key, , domains] of ROLES) {
     const id = suppliedEntities[key];
-    if (id === undefined || id === '') continue;
+    if (id === undefined || id === null || id === '') continue;
     if (typeof id !== 'string' || !/^[a-z_]+\.[a-z0-9_]+$/.test(id) || !domains.includes(id.split('.')[0])) throw new Error(`Entité ${key} invalide`);
     entities[key] = id;
   }
@@ -40,7 +40,8 @@ export function normalizeConfig(input: unknown): PoolConfig {
 export function available(entity?: EntityState): entity is EntityState { return !!entity && !['unknown', 'unavailable', ''].includes(entity.state); }
 export function parseTreatment(state?: string): Treatment | undefined {
   const key = state?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-  return ({ 'chlore/brome': 'chlorine', 'chlorine': 'chlorine', 'electrolyse': 'electrolysis', 'electrolysis': 'electrolysis', 'oxygene actif': 'oxygen', 'oxygen': 'oxygen', 'desactive': 'none', 'none': 'none' } as Record<string, Treatment>)[key ?? ''];
+  const values: Record<string, Treatment> = { 'chlore/brome': 'chlorine', 'chlorine': 'chlorine', 'electrolyse': 'electrolysis', 'electrolysis': 'electrolysis', 'oxygene actif': 'oxygen', 'oxygen': 'oxygen', 'desactive': 'none', 'none': 'none' };
+  return key !== undefined && Object.prototype.hasOwnProperty.call(values, key) ? values[key] : undefined;
 }
 export function resolveTreatment(config: PoolConfig, hass: Hass) {
   const id = config.entities.treatment_type;
