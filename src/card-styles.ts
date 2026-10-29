@@ -15,20 +15,21 @@ export const poolStyles=css`
 .fio-card .grid[data-group=tanks]{grid-template-columns:repeat(auto-fit,minmax(0,var(--fio-tile-size)));gap:10px;justify-content:start}
 @container(max-width:700px){.fio-card{--fio-tile-size:min(160px,calc((100cqi - 88px)/2))}}
 .fio-card .equipment-pane{container-type:inline-size}.fio-card .equipment-pane .equipment-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0 16px}
-.fio-card .control{box-sizing:border-box;min-height:53px;padding:4px 0;gap:10px;border:0;border-bottom:1px solid var(--divider-color);border-radius:0;background:transparent;box-shadow:none}
+.fio-card .control{box-sizing:border-box;min-height:53px;padding:4px 0;gap:10px;border:0;border-bottom:1px solid color-mix(in srgb,var(--divider-color) 72%,var(--fio-accent));border-radius:0;background:transparent;box-shadow:none}
+.fio-card .control:hover{background:color-mix(in srgb,var(--fio-accent) 5%,transparent)}
 .fio-card .control .details{min-height:0;gap:10px}.fio-card .control ha-button.details::part(base){min-height:0;padding:0;gap:10px}.fio-card .control .control-copy{gap:3px}.fio-card .control .control-label{font-size:.8rem;font-weight:500;line-height:1.3}.fio-card .control .control-state{font-size:.7rem;line-height:1.3}.fio-card .control .state-dot{display:none}
-.fio-card .control .icon-plate{width:20px;height:20px;border-radius:0;background:transparent;color:var(--secondary-text-color)}.fio-card .control .icon-plate ha-icon{--mdc-icon-size:19px}
+.fio-card .control .icon-plate{width:20px;height:20px;border-radius:6px;background:color-mix(in srgb,var(--fio-accent) 13%,var(--fio-panel));color:var(--fio-accent)}.fio-card .control .icon-plate ha-icon{--mdc-icon-size:19px}
 @container(max-width:440px){.fio-card .equipment-pane .equipment-grid{grid-template-columns:minmax(0,1fr)}}
-.fio-card{box-sizing:border-box;width:100%;max-width:100%;--fio-trim:color-mix(in srgb,var(--divider-color) 75%,var(--fio-water));border:1px solid var(--fio-trim);border-radius:16px;background:color-mix(in srgb,var(--fio-water) 3%,var(--fio-surface));box-shadow:0 2px 8px color-mix(in srgb,var(--primary-text-color) 5%,transparent)}
+.fio-card{box-sizing:border-box;width:100%;max-width:100%;--fio-trim:color-mix(in srgb,var(--divider-color) 65%,var(--fio-water));--fio-panel:color-mix(in srgb,var(--fio-surface) 94%,var(--primary-text-color));border:1px solid var(--fio-trim);border-radius:16px;background:color-mix(in srgb,var(--fio-water) 3%,var(--fio-surface));box-shadow:0 3px 12px color-mix(in srgb,var(--primary-text-color) 7%,transparent)}
 .fio-card .hero{background:linear-gradient(115deg,color-mix(in srgb,var(--fio-water) 12%,var(--fio-surface)),var(--fio-surface));border-bottom:1px solid var(--fio-trim)}
 .fio-card .hero-icon{color:var(--fio-water);background:color-mix(in srgb,var(--fio-water) 14%,var(--fio-surface))}
-.fio-card .section-heading h3>ha-icon{color:var(--fio-water)}
-.fio-card .measurement-group,.fio-card .equipment-pane .equipment-grid{background:var(--fio-surface);border-color:var(--fio-trim);border-radius:12px;box-shadow:0 1px 3px color-mix(in srgb,var(--primary-text-color) 4%,transparent)}
-.fio-card .measure{background:linear-gradient(150deg,color-mix(in srgb,var(--fio-accent) 5%,var(--fio-surface)),var(--fio-surface));border-color:color-mix(in srgb,var(--fio-accent) 18%,var(--divider-color));border-radius:11px}
-.fio-card .measure::before{height:2px;opacity:.65}
+.fio-card .section-heading h3{font-size:1rem;font-weight:650;letter-spacing:-.01em}.fio-card .section-heading h3>ha-icon{color:var(--fio-water)}
+.fio-card .measurement-group,.fio-card .equipment-pane .equipment-grid{background:var(--fio-panel);border-color:var(--fio-trim);border-radius:12px;box-shadow:0 2px 8px color-mix(in srgb,var(--primary-text-color) 5%,transparent)}
+.fio-card .measure{background:linear-gradient(150deg,color-mix(in srgb,var(--fio-accent) 8%,var(--fio-surface)),var(--fio-surface));border-color:color-mix(in srgb,var(--fio-accent) 27%,var(--divider-color));border-radius:13px;box-shadow:0 2px 8px color-mix(in srgb,var(--fio-accent) 7%,transparent)}
+.fio-card .measure::before{height:3px;opacity:.8}
 .fio-card .measure[data-available=false]{background:var(--fio-surface);border-style:dashed}
 .fio-card .control[data-on=true][data-available=true] .icon-plate{color:var(--fio-accent)}
-.fio-card .grid[data-group=tanks]{box-sizing:border-box;width:fit-content;max-width:100%;min-width:0;padding:8px;border:1px solid var(--fio-trim);border-radius:12px;background:var(--fio-surface);box-shadow:0 1px 3px color-mix(in srgb,var(--primary-text-color) 4%,transparent)}
+.fio-card .grid[data-group=tanks]{box-sizing:border-box;width:fit-content;max-width:100%;min-width:0;padding:10px;border:1px solid color-mix(in srgb,var(--fio-trim) 65%,var(--fio-ph));border-radius:15px;background:var(--fio-panel);box-shadow:0 2px 8px color-mix(in srgb,var(--primary-text-color) 5%,transparent)}
 @container(max-width:700px){
 .fio-card{--fio-tile-size:calc((100cqi - 54px)/2);border-radius:12px}
 .fio-card .hero{padding:10px;gap:8px}

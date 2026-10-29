@@ -6,6 +6,7 @@ export async function preview(page: Page, freezeClock = false) {
   await expect(page.locator('flowio-pool-card h2')).toHaveText('Piscine · Jardin');
   await page.evaluate(() => {
     const w = window as any, d = w.demo;
+    d.config.display.measurements = [...new Set([...d.config.display.measurements, 'air_temperature'])];
     d.config.display.timing = ['filtration_schedule', 'filtration_runtime', 'ph_runtime', 'disinfection_runtime'];
     for (const [id, state, unit] of [
       ['sensor.fio_pl_flt_start', '8', 'h'],

@@ -11,6 +11,7 @@ async function prepareCards(page: Page) {
     grid.style.cssText = 'display:block;align-items:start';
   });
   await page.evaluate(async () => { await document.fonts.ready; });
+  await page.mouse.move(0, 0);
 }
 
 test('README pool-card snapshot @readme-snapshot', async ({ page }) => {
@@ -21,4 +22,16 @@ test('README pool-card snapshot @readme-snapshot', async ({ page }) => {
 test('README history-card snapshot @readme-snapshot', async ({ page }) => {
   await prepareCards(page);
   await expect(page.locator('flowio-history-card')).toHaveScreenshot('flowio-history-card.png', { animations: 'disabled', caret: 'hide' });
+});
+
+test('README pool-card dark snapshot @readme-snapshot', async ({ page }) => {
+  await prepareCards(page);
+  await page.locator('#theme').click();
+  await expect(page.locator('flowio-pool-card')).toHaveScreenshot('flowio-pool-card-dark.png', { animations: 'disabled', caret: 'hide' });
+});
+
+test('README history-card dark snapshot @readme-snapshot', async ({ page }) => {
+  await prepareCards(page);
+  await page.locator('#theme').click();
+  await expect(page.locator('flowio-history-card')).toHaveScreenshot('flowio-history-card-dark.png', { animations: 'disabled', caret: 'hide' });
 });

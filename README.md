@@ -2,9 +2,13 @@
 
 Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. Version 0.1.0 en préparation : modifier les fichiers du dépôt ne publie pas une release. La préversion v0.1.0-beta.1 reste indépendante.
 
-![Capture E2E de la carte Flow.io Piscine](docs/flowio-pool-card.png)
+| Carte Piscine — clair | Carte Piscine — sombre |
+|---|---|
+| ![Carte Flow.io Piscine en thème clair](docs/flowio-pool-card.png) | ![Carte Flow.io Piscine en thème sombre](docs/flowio-pool-card-dark.png) |
 
-![Capture E2E de la carte d’historiques Flow.io](docs/flowio-history-card.png)
+| Historiques — clair | Historiques — sombre |
+|---|---|
+| ![Carte d’historiques Flow.io en thème clair](docs/flowio-history-card.png) | ![Carte d’historiques Flow.io en thème sombre](docs/flowio-history-card-dark.png) |
 
 ## Cartes
 
