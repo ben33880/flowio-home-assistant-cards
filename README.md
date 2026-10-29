@@ -1,6 +1,19 @@
 # Flow.io Home Assistant Cards
 
-Cartes de piscine par préfixe firmware et sélection explicite des éléments. Aucun bloc de la synthèse ne dépend de la détection du traitement. Les identifiants firmware restent inchangés et sont centralisés dans src/entities.ts.
+Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. Version 0.1.0 en préparation : modifier les fichiers du dépôt ne publie pas une release. La préversion v0.1.0-beta.1 reste indépendante.
+
+## Cartes
+
+- `custom:flowio-pool-card` : jauges pH/ORP/pression, températures, équipements, modes, alarmes, cuves et frise de filtration.
+- `custom:flowio-history-card` : courbes ApexCharts alimentées par l'historique Home Assistant/Recorder.
+
+Les cartes reprennent le thème Home Assistant. Les équipements et modes utilisent le composant natif `ha-switch` de l'instance, sans interrupteur de remplacement dans le bundle de production.
+
+## Installation
+
+Après publication d'une release vérifiée, ajouter `ben33880/flowio-home-assistant-cards` aux dépôts personnalisés HACS, catégorie Dashboard. Le dépôt n'est pas ajouté automatiquement au catalogue HACS par défaut.
+
+Ressource attendue : `/hacsfiles/flowio-home-assistant-cards/flowio-home-assistant-cards.js`, type module JavaScript. Ne pas charger simultanément une ancienne copie manuelle. Voir [installation HACS et manuelle](docs/HACS.md).
 
 ## Synthèse
 
@@ -8,31 +21,27 @@ Cartes de piscine par préfixe firmware et sélection explicite des éléments. 
 type: custom:flowio-pool-card
 entity_prefix: fio
 display:
-  measurements: [water_temperature, ph, orp, pressure]
+  measurements: [ph, orp, pressure, water_temperature, air_temperature]
   setpoints: [ph_setpoint, orp_setpoint]
   equipment: [filtration, ph_pump, disinfection_pump, lighting]
-  tanks: [ph_tank, ph_tank_percent, disinfection_tank, disinfection_tank_percent]
+  modes: [filtration_auto, winter, ph_auto, disinfection_auto, heater_auto, disinfection_type, swg_control, ph_dose_plus, o2_temp_comp]
+  tanks: [ph_tank_percent, disinfection_tank_percent]
   information: [treatment_type, alarm_active, alarm_count, diagnostics]
+  timing: [filtration_schedule, filtration_runtime, ph_runtime, disinfection_runtime]
 tank_slots:
+  ph: 1
+  disinfection: 2
+runtime_slots:
+  filtration: 0
   ph: 1
   disinfection: 2
 ```
 
-L'éditeur présente des listes à choix multiples pour chaque groupe. Une liste vide masque ce groupe ; chaque volume et pourcentage peut être choisi indépendamment. Les entités sélectionnées mais absentes ou indisponibles restent visibles avec leur statut. Le diagnostic est lui aussi optionnel.
+Choisir uniquement les éléments souhaités dans l'éditeur. Une liste vide masque le groupe. Les modes sont en outre filtrés selon les équipements cochés, sans effacer la sélection `display.modes` et sans changer un état du firmware. Par exemple, le pilotage électrolyseur apparaît seulement si `electrolyzer` est sélectionné.
 
-Les champs précédents entities, features, treatment, show_tanks et measurements au premier niveau de la synthèse sont rejetés, sans migration. Remplacer les configurations par les nouveaux exemples. Pour les historiques, measurements reste au premier niveau.
+Le préfixe vaut `fio` par défaut : `piscine` construit `sensor.piscine_io_ph`. Un préfixe vide est accepté. Les noms métier du firmware sont conservés ; aucun choix automatique d'une entité suffixée `_2`.
 
-Le préfixe vaut fio ; piscine construit sensor.piscine_io_ph. Un préfixe vide supprime le segment de préfixe. Les caractères sont validés, les lettres mises en minuscules et les underscores finaux retirés. Aucun remplacement automatique par une entité suffixée _2.
-
-## Commandes et traitement
-
-Le traitement annoncé est une information facultative, affichée brute depuis select.<prefix>_pl_modes_dis. Il n'est ni interprété pour masquer des éléments, ni utilisé comme verrou implicite de commande. Le choix d'affichage ne modifie jamais ce sélecteur.
-
-Une commande exige que l'équipement soit sélectionné et que son entité soit disponible avec un état on/off. Les démarrages de filtration, dosage et remplissage demandent confirmation. Les actions passent par les switches HA ; le firmware reste responsable des interlocks et de l'arbitrage manuel/automatique. Les erreurs de commande restent visibles même si les informations sont masquées. Afficher un équipement ne garantit pas que sa mise en marche sera autorisée. Une sortie active ne confirme pas physiquement la marche.
-
-## Cuves
-
-Les volumes et % sont des estimations firmware distinctes. Pour pdN : volume data_(112+2*N), pourcentage data_(113+2*N). Les slots par défaut sont pH=1, désinfectant=2, à vérifier dans votre installation. Activer les valeurs voulues dans la diffusion HA du firmware. La jauge n'existe que si le % est choisi et numérique entre 0 et 100. Une absence n'est jamais convertie en zéro ; zéro réel reste valide. Aucun calcul depuis une capacité supposée.
+Les anciens champs `entities`, `features`, `show_tanks`, `treatment` et `measurements` au premier niveau de la synthèse sont rejetés. Recréer les anciennes configurations avec `display`. Pour les historiques, `measurements` reste au premier niveau.
 
 ## Historiques
 
@@ -43,23 +52,40 @@ hours_to_show: 24
 measurements: [water_temperature, ph, orp, pressure]
 ```
 
-Les historiques natifs sont indépendants de la synthèse et utilisent le Recorder, sans stockage supplémentaire.
+Le Recorder doit fournir les historiques des entités choisies. La carte ne remplace pas sa configuration.
 
-## Développement et distribution
+## Commandes et limites
 
-Node.js 24, ubuntu-24.04 et les actions natives Node 24 sont conservés.
+- Consulter une valeur ouvre les informations de l'entité ; changer un contrôle peut commander la piscine.
+- Les démarrages sensibles et certains changements de stratégie demandent confirmation.
+- Un appel de service accepté ne confirme pas physiquement la marche d'un appareil. Les modes affichés suivent le retour d'état Home Assistant.
+- Désactiver un automatisme ne signifie pas nécessairement arrêter sa sortie.
+- Les protections, interlocks et règles de dosage restent dans Flow.io. La carte ne garantit pas la qualité de l'eau.
+- La frise représente une plage prévue, distincte des compteurs journaliers.
+- Les cuves affichent des estimations firmware. Vérifier les slots et la diffusion HA des valeurs ; une absence n'est pas transformée en zéro.
+- Le dialogue d'alarme n'acquitte que via les boutons individuels disponibles exposés par le firmware.
+- Les composants internes de Home Assistant peuvent évoluer : valider le rendu sur la version réellement utilisée. Aucune version minimale HA n'est annoncée sans vérification.
+
+## Développement et release
+
+Node.js 24 et ubuntu-24.04 sont conservés.
 
 ```sh
 nvm install
 nvm use
-npm install
+npm ci
 npm test
 npm run build
 npx playwright install chromium
 npm run test:e2e
-npm run demo
 ```
 
-La démo locale utilise seulement des données fictives, avec préfixe, état firmware simulé et thème modifiables. Aucun équipement réel n'est commandé. Les palettes fixes appartiennent à la démo ; les cartes héritent du thème HA. Les tests des graphiques et de l'éditeur simulent leurs dépendances internes et ne remplacent pas l'essai HA réel. Le nouveau lot doit repasser la CI ; aucun succès n'est présumé. Le lockfile reste à générer et versionner.
+Avant le premier `npm ci`, le lockfile doit être généré, testé, revu et fusionné via le workflow manuel de préparation des dépendances. Les tests unitaires incluent `tests/` et `src/`.
 
-Après réussite de check et publish-dist, le bundle est publié dans dist sur main. Les anciennes releases restent inchangées : installer main actualisé ou publier une nouvelle beta. Voir docs/HACS.md et docs/DISPLAY.md. Le firmware n'est pas modifié.
+La démo utilise des données fictives et un substitut de `ha-switch` limité à `demo/`. Elle ne valide ni le véritable frontend HA ni le matériel. Les tests ne commandent aucun équipement réel.
+
+Voir [procédure de première release](docs/RELEASE.md) et [notes 0.1.0](docs/releases/v0.1.0.md). Le workflow stable crée uniquement un brouillon après validation ; la publication reste une action manuelle distincte.
+
+## Licence
+
+Le code du projet est distribué sous [licence MIT](LICENSE). Les dépendances conservent leurs propres licences. La préparation de release copie leurs mentions depuis les paquets effectivement inclus dans le build et les joint au bundle.

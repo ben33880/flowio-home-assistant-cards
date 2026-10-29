@@ -1,0 +1,61 @@
+name: Prepare dependency lock (manual)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: flowio-dependency-lock
+  cancel-in-progress: false
+jobs:
+  lock:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          package-manager-cache: false
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm run build
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: dependency-lock-report
+          path: |
+            package-lock.json
+            playwright-report/
+            test-results/
+      - name: Open a reviewable lockfile PR after successful tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          test "$(git rev-parse origin/main)" = "$SOURCE_SHA" || { echo 'main changed; rerun from current main.' >&2; exit 1; }
+          git add -- package-lock.json
+          if git diff --cached --quiet; then
+            echo 'The dependency lock is already committed and current.'
+            exit 0
+          fi
+          BRANCH="chore/dependency-lock-${GITHUB_RUN_ID}"
+          git checkout -b "$BRANCH"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'build: lock dependencies for release'
+          git push origin "$BRANCH"
+          gh pr create --base main --head "$BRANCH" --title 'build: lock dependencies for release' --body 'Generated package-lock.json. npm ci, unit tests, TypeScript/build and Chromium tests passed in this workflow. Review and merge before preparing the release. No release was published.'

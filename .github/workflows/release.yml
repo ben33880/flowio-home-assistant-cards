@@ -1,0 +1,112 @@
+name: Prepare stable release draft (manual)
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Stable version without v; must match package.json'
+        required: true
+        default: '0.1.0'
+        type: string
+      ha_smoke_tested:
+        description: 'I checked this version in Home Assistant: rendering, entities, native switches and cancellation. This is not hardware certification.'
+        required: true
+        default: false
+        type: boolean
+permissions:
+  contents: read
+concurrency:
+  group: flowio-release-${{ inputs.version }}
+  cancel-in-progress: false
+env:
+  RELEASE_VERSION: ${{ inputs.version }}
+  RELEASE_SOURCE_SHA: ${{ github.sha }}
+  HA_SMOKE_TESTED: ${{ inputs.ha_smoke_tested }}
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Validate release request
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] || { echo 'Expected a stable version such as 0.1.0.' >&2; exit 1; }
+          [[ "$HA_SMOKE_TESTED" == 'true' ]] || { echo 'Perform the Home Assistant smoke test before preparing a stable release.' >&2; exit 1; }
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          package-manager-cache: false
+      - name: Require reviewed lockfile and matching version
+        run: |
+          test -s package-lock.json || { echo 'Run Prepare dependency lock and merge its PR first.' >&2; exit 1; }
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("package.json","utf8")); if(p.version!==process.env.RELEASE_VERSION)throw new Error("Version mismatch");'
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Rebuild production bundle and prepare provenance after browser tests
+        run: npm run release:prepare
+      - name: Compute release checksums
+        working-directory: dist
+        run: sha256sum flowio-home-assistant-cards.js release-metadata.json THIRD_PARTY_NOTICES.txt LICENSE package-lock.json RELEASE_NOTES.md > SHA256SUMS
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: release-browser-report
+          path: |
+            playwright-report/
+            test-results/
+      - uses: actions/upload-artifact@v6
+        if: success()
+        with:
+          name: verified-release
+          if-no-files-found: error
+          path: |
+            dist/flowio-home-assistant-cards.js
+            dist/release-metadata.json
+            dist/THIRD_PARTY_NOTICES.txt
+            dist/LICENSE
+            dist/package-lock.json
+            dist/RELEASE_NOTES.md
+            dist/SHA256SUMS
+  draft:
+    needs: validate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: verified-release
+          path: dist
+      - name: Verify artifact and exact source
+        working-directory: dist
+        run: |
+          set -eu
+          sha256sum --check SHA256SUMS
+          jq -e --arg sha "$RELEASE_SOURCE_SHA" --arg version "$RELEASE_VERSION" '.commit == $sha and .version == $version' release-metadata.json
+      - name: Create draft only; never overwrite an existing version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="v${RELEASE_VERSION}"
+          REFS=$(gh api "repos/${GH_REPO}/git/matching-refs/tags/${TAG}" --jq '.[].ref')
+          if printf '%s\n' "$REFS" | grep -Fxq "refs/tags/${TAG}"; then
+            echo 'Tag already exists. Never reuse release tags.' >&2
+            exit 1
+          fi
+          RELEASES=$(gh api --paginate "repos/${GH_REPO}/releases?per_page=100" --jq '.[].tag_name')
+          if printf '%s\n' "$RELEASES" | grep -Fxq "$TAG"; then
+            echo 'A release or draft already exists. Inspect it; do not overwrite it.' >&2
+            exit 1
+          fi
+          gh release create "$TAG" dist/flowio-home-assistant-cards.js dist/release-metadata.json dist/THIRD_PARTY_NOTICES.txt dist/LICENSE dist/package-lock.json dist/RELEASE_NOTES.md dist/SHA256SUMS --target "$RELEASE_SOURCE_SHA" --title "Flow.io Cards $TAG" --notes-file dist/RELEASE_NOTES.md --draft --latest=false
