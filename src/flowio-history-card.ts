@@ -14,7 +14,7 @@ render(){
  const c=this.config;if(!c)return nothing;
  const periods=[...new Set([6,12,24,48,168,this.hours])].sort((a,b)=>a-b);
  return html`
-  <header class=hero><div class=hero-copy><h2>${c.title}</h2></div></header>
+  <header class=hero><ha-icon class=hero-icon icon=mdi:chart-line aria-hidden=true></ha-icon><div class=hero-copy><h2>${c.title}</h2></div></header>
   <ha-card class=fio-card><div class=body>
    <div class=toolbar>
     <div class=periods role=group aria-label="Période des historiques">${periods.map(n=>{const label=n===168?'7 j':`${n} h`,selected=n===this.hours;return html`<ha-button class=period-button appearance=${selected?'accent':'plain'} aria-pressed=${String(selected)} .accessibleLabel=${label} @click=${()=>this.select(n)}>${label}</ha-button>`;})}</div>
