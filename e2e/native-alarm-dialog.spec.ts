@@ -1,0 +1,11 @@
+import{test,expect}from'@playwright/test';
+test('dialogue alarmes natif : ouverture, acquittement confirmé, indisponible et fermeture',async({page})=>{
+ await page.goto('/demo/');await expect(page.locator('flowio-pool-card h2')).toBeVisible();
+ await page.evaluate(()=>{const d=(window as any).demo;Object.assign(d.hass.states,{'sensor.fio_alm_active_count':{state:'1',attributes:{}},'binary_sensor.fio_alm_any_active':{state:'on',attributes:{}},'binary_sensor.fio_alm_1_active':{state:'on',attributes:{friendly_name:'Défaut filtration'}},'button.fio_alm_1_reset':{state:'unknown',attributes:{}},'binary_sensor.fio_alm_2_active':{state:'on',attributes:{friendly_name:'Niveau insuffisant'}},'button.fio_alm_2_reset':{state:'unavailable',attributes:{}}});d.apply();});
+ const status=page.locator('flowio-header-status'),dialog=status.locator('ha-dialog.alarm-dialog');await expect(dialog).toHaveCount(1);await expect(dialog).toHaveJSProperty('open',false);
+ await status.locator('hui-heading-card [data-entity="sensor.fio_alm_active_count"] button').click();await expect(dialog).toHaveJSProperty('open',true);await expect(dialog.locator('li')).toHaveCount(2);await expect(dialog.locator('[data-alarm-id="2"] ha-button.reset')).toHaveAttribute('aria-disabled','true');
+ page.once('dialog',d=>d.dismiss());await dialog.locator('[data-alarm-id="1"] ha-button.reset').click();expect(await page.evaluate(()=>(window as any).demo.calls.length)).toBe(0);
+ page.once('dialog',d=>d.accept());await dialog.locator('[data-alarm-id="1"] ha-button.reset').click();await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls.at(-1))).toEqual({domain:'button',service:'press',data:{entity_id:'button.fio_alm_1_reset'}});
+ await page.evaluate(()=>{const d=(window as any).demo;d.hass.states['binary_sensor.fio_alm_1_active']={state:'off',attributes:{friendly_name:'Défaut filtration'}};d.hass.states['sensor.fio_alm_active_count']={state:'0',attributes:{}};d.apply();});await expect(dialog.locator('li')).toHaveCount(1);await expect(dialog.locator('.feedback')).toContainText('état confirmé');
+ await page.keyboard.press('Escape');await expect(dialog).toHaveJSProperty('open',false);expect(await page.evaluate(()=>(window as any).demo.calls.length)).toBe(1);
+});
