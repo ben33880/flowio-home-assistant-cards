@@ -1,3 +1,4 @@
+import './ha-native-heading.js';
 // Demo/test stand-in only. Production uses Home Assistant's registered ha-switch.
 if(!customElements.get('ha-switch'))customElements.define('ha-switch',class extends HTMLElement{
 static get observedAttributes(){return['aria-label'];}
