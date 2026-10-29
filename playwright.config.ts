@@ -4,6 +4,7 @@ export default defineConfig({
   fullyParallel: true,
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
+  snapshotPathTemplate: 'docs/{arg}{ext}',
   use: { baseURL: 'http://127.0.0.1:4173', browserName: 'chromium', trace: 'retain-on-failure', screenshot: 'only-on-failure' },
   webServer: { command: 'npm run demo', url: 'http://127.0.0.1:4173/demo/', reuseExistingServer: !process.env.CI }
 });

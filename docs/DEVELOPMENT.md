@@ -1,6 +1,8 @@
 # Développement
 
-Node.js 24 via .nvmrc. Utiliser nvm install, nvm use, npm install, npm test et npm run build. Pour Chromium : npx playwright install chromium puis npm run test:e2e. Le lockfile reste à générer et versionner avant npm ci.
+Node.js 24 via .nvmrc. Utiliser nvm install, nvm use, npm ci, npm test et npm run build. Pour Chromium : npx playwright install chromium puis npm run test:e2e. Le lockfile versionné garantit l'installation des versions résolues ; après une modification volontaire des dépendances, le régénérer et le revoir avec le workflow manuel avant de fusionner.
+
+Les captures de référence du README sont vérifiées par Playwright dans `e2e/readme-snapshots.spec.ts` et stockées dans `docs/`. Pour les actualiser après un changement visuel intentionnel, exécuter `npx playwright test e2e/readme-snapshots.spec.ts --update-snapshots`, puis revoir et versionner les images avec les changements de code.
 
 La synthèse accepte uniquement le format entity_prefix + display + tank_slots, sans anciens champs ni associations manuelles. Voir examples/pool.yaml et docs/DISPLAY.md. Les suffixes firmware et rôles métier sont centralisés dans src/entities.ts. Les historiques conservent leur format entity_prefix + measurements.
 

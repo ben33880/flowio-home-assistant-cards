@@ -2,9 +2,9 @@
 
 Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. Version 0.1.0 en préparation : modifier les fichiers du dépôt ne publie pas une release. La préversion v0.1.0-beta.1 reste indépendante.
 
-![Vue de la carte Flow.io Piscine](docs/1.png)
+![Capture E2E de la carte Flow.io Piscine](docs/flowio-pool-card.png)
 
-![Vue de la carte d’historiques Flow.io](docs/2.png)
+![Capture E2E de la carte d’historiques Flow.io](docs/flowio-history-card.png)
 
 ## Cartes
 
@@ -84,7 +84,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-Avant le premier `npm ci`, le lockfile doit être généré, testé, revu et fusionné via le workflow manuel de préparation des dépendances. Les tests unitaires incluent `tests/` et `src/`.
+Le lockfile est versionné et utilisé par la CI et les releases avec `npm ci`. Pour toute modification volontaire des dépendances, mettre à jour le lockfile via le workflow manuel de préparation, puis revoir et fusionner sa PR. Les tests unitaires incluent `tests/` et `src/`.
 
 La démo utilise des données fictives et un substitut de `ha-switch` limité à `demo/`. Elle ne valide ni le véritable frontend HA ni le matériel. Les tests ne commandent aucun équipement réel.
 
