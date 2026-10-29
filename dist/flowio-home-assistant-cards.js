@@ -28,7 +28,7 @@ var fn=Object.defineProperty;var mn=(n,e)=>()=>(n&&(e=n(n=0)),e);var xn=(n,e)=>{
 .fio-card .measure::before{height:2px;opacity:.65}
 .fio-card .measure[data-available=false]{background:var(--fio-surface);border-style:dashed}
 .fio-card .control[data-on=true][data-available=true] .icon-plate{color:var(--fio-accent)}
-.fio-card .grid[data-group=tanks]{box-sizing:border-box;width:100%;min-width:0;padding:8px;border:1px solid var(--fio-trim);border-radius:12px;background:var(--fio-surface);box-shadow:0 1px 3px color-mix(in srgb,var(--primary-text-color) 4%,transparent)}
+.fio-card .grid[data-group=tanks]{box-sizing:border-box;width:fit-content;max-width:100%;min-width:0;padding:8px;border:1px solid var(--fio-trim);border-radius:12px;background:var(--fio-surface);box-shadow:0 1px 3px color-mix(in srgb,var(--primary-text-color) 4%,transparent)}
 @container(max-width:700px){
 .fio-card{--fio-tile-size:calc((100cqi - 54px)/2);border-radius:12px}
 .fio-card .hero{padding:10px;gap:8px}
