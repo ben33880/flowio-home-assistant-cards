@@ -7,6 +7,16 @@ display:
   equipment: [filtration, ph_pump, disinfection_pump, lighting, robot]
   tanks: [ph_tank, ph_tank_percent, disinfection_tank, disinfection_tank_percent]
   information: [treatment_type, alarm_active, alarm_count, diagnostics]
+  timing: [filtration_schedule, filtration_runtime, ph_runtime, disinfection_runtime]
 tank_slots:
   ph: 1
   disinfection: 2
+runtime_slots:
+  filtration: 0
+  ph: 1
+  disinfection: 2
+# Les bornes visuals sont seulement des échelles graphiques, à adapter aux unités.
+visuals:
+  ph: {type: arc, min: 0, max: 14}
+  orp: {type: arc, min: 0, max: 1000}
+  pressure: {type: needle, min: 0, max: 3}
