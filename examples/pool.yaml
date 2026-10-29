@@ -1,0 +1,26 @@
+# Exemple : remplacer les entités par celles de votre installation.
+# Cette configuration ne change pas le traitement du contrôleur.
+type: custom:flowio-pool-card
+title: Piscine
+treatment: chlorine
+features:
+  filtration: true
+  ph_control: true
+  heating: false
+  robot: true
+  lighting: true
+  filling: false
+show_tanks: false
+entities:
+  water_temperature: sensor.fio_io_wat_tmp
+  ph: sensor.fio_io_ph
+  orp: sensor.fio_io_orp
+  pressure: sensor.fio_io_psi
+  filtration: switch.fio_io_flt_pmp
+  ph_pump: switch.fio_io_ph_pmp
+  disinfection_pump: switch.fio_io_chl_pmp
+  robot: switch.fio_io_robot
+  lighting: switch.fio_io_lights
+  treatment_type: select.fio_pl_modes_dis
+  alarm_active: binary_sensor.fio_alm_any_active
+  alarm_count: sensor.fio_alm_active_count
