@@ -1,0 +1,2 @@
+let loading:Promise<void>|undefined;
+export function ensureHaSwitch():Promise<void>{if(customElements.get('ha-switch'))return Promise.resolve();if(loading)return loading;loading=(async()=>{const load=(window as Window&{loadCardHelpers?:()=>Promise<unknown>}).loadCardHelpers;if(!load)throw new Error('Contrôles Home Assistant non chargés');await load();if(!customElements.get('ha-switch'))throw new Error('ha-switch indisponible');})().catch(error=>{loading=undefined;throw error;});return loading;}
