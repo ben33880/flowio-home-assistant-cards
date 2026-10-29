@@ -1,5 +1,5 @@
 type: custom:flowio-pool-card
-title: Piscine
+title: Supervision & pilotage
 entity_prefix: fio
 display:
   measurements: [water_temperature, ph, orp, pressure]

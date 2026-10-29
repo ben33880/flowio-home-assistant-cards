@@ -23,6 +23,7 @@ Ressource attendue : `/hacsfiles/flowio-home-assistant-cards/flowio-home-assista
 
 ```yaml
 type: custom:flowio-pool-card
+title: Supervision & pilotage
 entity_prefix: fio
 display:
   measurements: [ph, orp, pressure, water_temperature, air_temperature]

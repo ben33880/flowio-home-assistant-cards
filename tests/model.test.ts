@@ -1,6 +1,7 @@
 import { expect,it } from 'vitest';
 import { normalizeConfig,idFor,expectedRoles,canCommand,entityStatus,tankPercent,type Hass } from '../src/model';
 const hass=(states:Record<string,string>):Hass=>({states:Object.fromEntries(Object.entries(states).map(([id,state])=>[id,{state,attributes:{}}])),callService:async()=>undefined});
+it('utilise le titre configuré et définit Supervision & pilotage par défaut',()=>{expect(normalizeConfig({}).title).toBe('Supervision & pilotage');expect(normalizeConfig({title:'Piscine'}).title).toBe('Piscine');});
 it('construit les identifiants depuis le préfixe uniquement',()=>{expect(idFor(normalizeConfig({}),'ph')).toBe('sensor.fio_io_ph');expect(idFor(normalizeConfig({entity_prefix:' Piscine_ '}),'filtration')).toBe('switch.piscine_io_flt_pmp');expect(idFor(normalizeConfig({entity_prefix:''}),'ph')).toBe('sensor.io_ph');});
 it('chaque groupe vide reste vide, sans fallback automatique',()=>{const c=normalizeConfig({display:{measurements:[],setpoints:[],equipment:[],tanks:[],information:[]}});expect(expectedRoles(c)).toEqual([]);expect('entities' in c).toBe(false);});
 it('un choix n’en entraîne aucun autre',()=>{const c=normalizeConfig({display:{measurements:[],setpoints:['orp_setpoint'],equipment:[],tanks:['disinfection_tank_percent'],information:[]}});expect(expectedRoles(c)).toEqual(['orp_setpoint','disinfection_tank_percent']);});

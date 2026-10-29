@@ -2,6 +2,8 @@
 
 La carte principale utilise entity_prefix et display. Aucun mode de traitement ne décide des blocs affichés. L'utilisateur sélectionne ses mesures, consignes, équipements, valeurs de cuve et informations.
 
+Le titre d'entête vient du champ `title`, utilisé tel quel ; sa valeur par défaut est `Supervision & pilotage`.
+
 ## Options
 
 - display.measurements : water_temperature, air_temperature, ph, orp, pressure.
