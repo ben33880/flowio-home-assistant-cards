@@ -2,15 +2,11 @@
 
 Cette procédure prépare un brouillon. Elle ne publie pas automatiquement une version stable et n'envoie aucune commande à la piscine.
 
-## 1. Figer les dépendances
+## 1. Vérifier les dépendances figées
 
-Le dépôt ne disposait pas de package-lock.json lors de cette préparation. Ne pas fabriquer ce fichier à la main.
+Le dépôt versionne `package-lock.json`. Les workflows CI et release utilisent `npm ci` pour installer exactement les dépendances verrouillées. Ne pas régénérer le lockfile pour une release sans changement de dépendances.
 
-1. Ouvrir Actions > Prepare dependency lock (manual), sur main actuel.
-2. Le workflow résout les dépendances avec npm, puis exécute npm ci, tous les tests unitaires, le build TypeScript/production et les tests Chromium.
-3. Si les contrôles réussissent et main n'a pas changé, il crée une branche et une PR contenant uniquement package-lock.json.
-4. Revoir et fusionner cette PR. En cas de refus de création de PR, vérifier les autorisations GitHub Actions du dépôt. Ne pas contourner les tests.
-5. Si main a avancé, relancer depuis son dernier commit. Les workflows déclenchés avec le token Actions ne déclenchent pas nécessairement une autre CI : le workflow de release refera tous les contrôles.
+Si les manifestes de dépendances changent, ouvrir Actions > Prepare dependency lock (manual) sur le dernier `main`. Le workflow régénère le lockfile, puis exécute `npm ci`, les tests unitaires, le build TypeScript/production et les tests Chromium. Revoir et fusionner la PR générée avant de préparer la release. Si `main` avance pendant l'exécution, relancer le workflow depuis son dernier commit.
 
 ## 2. Vérifier dans Home Assistant
 

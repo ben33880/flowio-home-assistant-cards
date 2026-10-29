@@ -12,11 +12,16 @@ jobs:
           node-version-file: '.nvmrc'
           package-manager-cache: false
       - run: node --version && npm --version
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - name: Run end-to-end tests except README screenshot baselines
+        run: npx playwright test --grep-invert @readme-snapshot
+      - name: Update README screenshot baselines
+        run: npx playwright test --grep @readme-snapshot --update-snapshots
+      - name: Verify generated README screenshot baselines
+        run: npx playwright test --grep @readme-snapshot
       - name: Rebuild production bundle after browser tests
         run: npm run build
       - uses: actions/upload-artifact@v6
@@ -32,6 +37,14 @@ jobs:
           name: flowio-home-assistant-cards
           if-no-files-found: error
           path: dist/flowio-home-assistant-cards.js
+      - uses: actions/upload-artifact@v6
+        if: success()
+        with:
+          name: readme-card-screenshots
+          if-no-files-found: error
+          path: |
+            docs/flowio-pool-card.png
+            docs/flowio-history-card.png
 
   publish-dist:
     needs: check
@@ -56,17 +69,24 @@ jobs:
         with:
           name: flowio-home-assistant-cards
           path: dist
-      - name: Commit only the validated HACS bundle
+      - uses: actions/download-artifact@v7
+        with:
+          name: readme-card-screenshots
+          path: docs
+      - name: Commit the validated bundle and README screenshot baselines
         shell: bash
         run: |
           set -euo pipefail
           test -s dist/flowio-home-assistant-cards.js
+          test -s docs/flowio-pool-card.png
+          test -s docs/flowio-history-card.png
           git add -f -- dist/flowio-home-assistant-cards.js
+          git add -- docs/flowio-pool-card.png docs/flowio-history-card.png
           if git diff --cached --quiet; then
-            echo 'The published HACS bundle is already up to date.'
+            echo 'The published bundle and README screenshot baselines are already up to date.'
             exit 0
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'build: publish validated HACS bundle [skip ci]'
+          git commit -m 'build: publish validated bundle and README screenshots [skip ci]'
           git push origin HEAD:main

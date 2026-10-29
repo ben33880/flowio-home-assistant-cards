@@ -40,7 +40,7 @@ jobs:
           node-version-file: '.nvmrc'
           package-manager-cache: false
       - run: node --version && npm --version
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm test
       - run: npm run check
       - run: npx playwright install --with-deps chromium
