@@ -8,8 +8,8 @@ test('annulation de confirmation et indisponibilité',async({page})=>{
  page.once('dialog',d=>d.dismiss());await page.getByRole('switch',{name:'Démarrer Pompe désinfectant'}).click();expect(await page.evaluate(()=>(window as any).demo.calls.length)).toBe(0);
  await page.locator('#offline').click();await expect(page.getByRole('switch',{name:'Démarrer Pompe désinfectant'})).toBeDisabled();
  const status=page.locator('flowio-pool-card .hero flowio-header-status'),alarms=status.locator('hui-heading-card ha-heading-badge[data-entity="sensor.fio_alm_active_count"]'),dialog=status.locator('ha-dialog.alarm-dialog');
- await expect(alarms).toBeVisible();await expect(alarms.locator('.state')).toHaveText('-');await expect(alarms).toHaveAttribute('data-color','none');
- await expect(alarms.locator('button')).toHaveAttribute('aria-label','Alarmes : -');await alarms.locator('button').click();await expect(dialog).toHaveJSProperty('open',true);await expect(dialog.locator('ha-button.reset')).toHaveCount(0);
+ await expect(alarms).toBeVisible();await expect(alarms.locator('.state')).toHaveText('Alertes · -');await expect(alarms).toHaveAttribute('data-color','none');
+ await expect(alarms.locator('button')).toHaveAttribute('aria-label','Alertes : -');await alarms.locator('button').click();await expect(dialog).toHaveJSProperty('open',true);await expect(dialog.locator('ha-button.reset')).toHaveCount(0);
  expect(await page.evaluate(()=>(window as any).demo.calls.length)).toBe(0);
 });
 test('anneau : une absence ne devient pas zéro',async({page})=>{const tile=page.locator('[data-role=disinfection_tank_percent]');await page.evaluate(()=>{const d=(window as any).demo;delete d.hass.states['sensor.fio_data_117'];d.apply();});await expect(tile).toContainText('Entité absente');await expect(tile.locator('flowio-gauge')).toHaveCount(0);await page.evaluate(()=>{const d=(window as any).demo;d.hass.states['sensor.fio_data_117']={state:'0',attributes:{unit_of_measurement:'%'}};d.apply();});await expect(tile.locator('flowio-gauge')).toHaveJSProperty('value',0);await expect(tile.locator('.dial')).toHaveAttribute('data-quality','bad');});

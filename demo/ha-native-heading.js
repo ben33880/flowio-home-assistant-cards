@@ -14,7 +14,8 @@ if(!window.loadCardHelpers){
         wanted.add(config.entity);let badge=this.badges.get(config.entity);
         if(!badge){badge=document.createElement('ha-heading-badge');badge.dataset.entity=config.entity;const button=document.createElement('button'),icon=document.createElement('span'),state=document.createElement('span');icon.className='icon';icon.setAttribute('aria-hidden','true');state.className='state';button.append(icon,state);badge.append(button);button.addEventListener('click',()=>this.action(badge.config));this.badges.set(config.entity,badge);}
         badge.config=config;badge.dataset.color=config.color||'none';const state=this._hass?.states?.[config.entity]?.state;const shown=state===undefined||state==='unknown'||state==='unavailable'?'-':state;
-        badge.querySelector('.state').textContent=config.show_state?shown:'';badge.querySelector('.icon').textContent=config.show_icon?(config.name==='Alarmes'?'♧':'◇'):'';badge.querySelector('button').setAttribute('aria-label',`${config.name||config.entity} : ${shown}`);row.append(badge);
+        const content=config.state_content?Array.isArray(config.state_content)?config.state_content:[config.state_content]:['state'];
+        badge.querySelector('.state').textContent=config.show_state?content.map(item=>item==='name'?config.name:item==='state'?shown:'').filter(Boolean).join(' · '):'';badge.querySelector('.icon').textContent=config.show_icon?(config.name==='Alertes'?'♧':'◇'):'';badge.querySelector('button').setAttribute('aria-label',`${config.name||config.entity} : ${shown}`);row.append(badge);
       }
       for(const[id,badge]of this.badges)if(!wanted.has(id)){badge.remove();this.badges.delete(id);}
     }
