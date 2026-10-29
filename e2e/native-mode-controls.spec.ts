@@ -10,7 +10,10 @@ test('Modes : dialogue, boutons, formulaire et retours natifs ; commande confirm
  await page.keyboard.press('Escape');await expect(modes.locator('ha-dialog')).toHaveJSProperty('open',false);
 });
 test('Modes : valeur hors options refusée sans appel de service',async({page})=>{
+ const confirmations:string[]=[];page.on('dialog',async dialog=>{confirmations.push(dialog.message());await dialog.dismiss();});
  await page.goto('/demo/');await expect(page.locator('flowio-pool-card h2')).toBeVisible();const modes=page.locator('flowio-modes');await modes.getByRole('button',{name:'Stratégie de traitement',exact:true}).click();
- await modes.locator('[data-mode=treatment_type] ha-form').evaluate(el=>el.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{value:'Valeur non autorisée'}},bubbles:true,composed:true})));
- expect(await page.evaluate(()=>(window as any).demo.calls.length)).toBe(0);
+ const form=modes.locator('[data-mode=disinfection_type] ha-form');await expect(form).toHaveCount(1);await expect(form).toBeVisible();
+ await form.evaluate(el=>el.dispatchEvent(new CustomEvent('value-changed',{detail:{value:{value:'Valeur non autorisée'}},bubbles:true,composed:true})));
+ await expect(form).toHaveJSProperty('data',{value:'Chlore/Brome'});await expect(modes.getByRole('combobox',{name:'Type de désinfection',exact:true})).toHaveValue('Chlore/Brome');
+ expect(confirmations).toEqual([]);expect(await page.evaluate(()=>(window as any).demo.calls)).toEqual([]);
 });
