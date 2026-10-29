@@ -14,4 +14,3 @@ export function ensureHaElements(names:readonly string[]):Promise<void>{
   const unavailable=missing();if(unavailable.length)throw new Error(`Composants HA indisponibles : ${unavailable.join(', ')}`);
  })().catch(error=>{loads.delete(key);throw error;});loads.set(key,promise);return promise;
 }
-export function ensureHaSwitch():Promise<void>{return ensureHaElements(['ha-switch']);}
