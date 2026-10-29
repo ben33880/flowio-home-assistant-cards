@@ -1,4 +1,4 @@
-# Format par préfixe uniquement. Aucun bloc entities.
+# Exemple pour une installation chlore liquide : affichage explicite, sans détection.
 title: Piscine Flow.io
 views:
   - title: Piscine
@@ -12,12 +12,15 @@ views:
           - type: custom:flowio-pool-card
             title: Piscine
             entity_prefix: fio
-            treatment: chlorine
-            features:
-              filtration: true
-              ph_control: true
-              lighting: true
-              robot: true
+            display:
+              measurements: [water_temperature, ph, orp, pressure]
+              setpoints: [ph_setpoint, orp_setpoint]
+              equipment: [filtration, ph_pump, disinfection_pump, lighting, robot]
+              tanks: [ph_tank, ph_tank_percent, disinfection_tank, disinfection_tank_percent]
+              information: [treatment_type, alarm_active, alarm_count, diagnostics]
+            tank_slots:
+              ph: 1
+              disinfection: 2
       - type: grid
         cards:
           - type: custom:flowio-history-card

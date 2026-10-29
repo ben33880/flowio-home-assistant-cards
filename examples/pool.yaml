@@ -1,17 +1,12 @@
 type: custom:flowio-pool-card
 title: Piscine
 entity_prefix: fio
-treatment: auto
-measurements: [water_temperature, ph, orp, pressure]
-features:
-  filtration: true
-  ph_control: true
-  lighting: true
-  robot: true
-  heating: false
-  filling: false
-show_tanks: false
-# Si show_tanks est actif, vérifier les slots réels et leur diffusion HA.
-# tank_slots:
-#   ph: 1
-#   disinfection: 2
+display:
+  measurements: [water_temperature, ph, orp, pressure]
+  setpoints: [ph_setpoint, orp_setpoint]
+  equipment: [filtration, ph_pump, disinfection_pump, lighting, robot]
+  tanks: [ph_tank, ph_tank_percent, disinfection_tank, disinfection_tank_percent]
+  information: [treatment_type, alarm_active, alarm_count, diagnostics]
+tank_slots:
+  ph: 1
+  disinfection: 2
