@@ -8,10 +8,11 @@ const raw=(input??{}) as Record<string,unknown>,result={} as Visuals;
 for(const key of Object.keys(raw))if(!(MEASUREMENTS as readonly string[]).includes(key))throw new Error('Mesure visuelle inconnue');
 for(const role of MEASUREMENTS){
 const value=raw[role];if(value!==undefined&&(!value||typeof value!=='object'||Array.isArray(value)))throw new Error('Échelle invalide');
-const v=(value??{}) as Record<string,unknown>,d=DEFAULTS[role],type=v.type??d.type;let min=v.min??d.min,max=v.max??d.max;
+const v=(value??{}) as Record<string,unknown>,d=DEFAULTS[role],type=v.type??d.type,min=v.min??d.min,max=v.max??d.max;
 if(typeof type!=='string'||!['tile','arc','needle'].includes(type)||typeof min!=='number'||typeof max!=='number'||![min,max,max-min].every(Number.isFinite)||max<=min)throw new Error('Échelle finie attendue avec max supérieur à min');
-if(min===0&&LEGACY_MAX[role]!==undefined&&max===LEGACY_MAX[role]){min=d.min;max=d.max;}
-result[role]={type:type as VisualType,min,max};
+const scale:Scale={type:type as VisualType,min,max};
+if(scale.min===0&&LEGACY_MAX[role]!==undefined&&scale.max===LEGACY_MAX[role]){scale.min=d.min;scale.max=d.max;}
+result[role]=scale;
 }return result;
 }
 export function numericValue(value:unknown):number|undefined{if(typeof value!=='number'&&typeof value!=='string')return undefined;if(typeof value==='string'&&!value.trim())return undefined;const n=Number(value);return Number.isFinite(n)?n:undefined;}
