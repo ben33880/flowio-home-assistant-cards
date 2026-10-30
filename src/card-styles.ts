@@ -56,8 +56,8 @@ export const poolStyles=css`
 export const historyStyles=css`
 .fio-card{--fio-trim:color-mix(in srgb,var(--divider-color) 65%,var(--fio-water));box-sizing:border-box;border:0;border-radius:0;background:transparent;box-shadow:none}
 :host>.hero{box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;min-width:0;padding:0 15px 8px 39px;background:transparent;border:0;box-shadow:none}
-:host>.hero .hero-icon{box-sizing:border-box;display:inline-flex;flex:0 0 38px;width:38px;height:38px;border-radius:12px;color:var(--fio-water);background:color-mix(in srgb,var(--fio-water) 14%,var(--fio-surface));--mdc-icon-size:30px}
-:host>.hero h2{font-size:var(--ha-font-size-l,20px);font-weight:650;line-height:var(--ha-line-height-normal,1.4);letter-spacing:normal}
+:host>.hero .hero-icon{box-sizing:border-box;display:inline-flex;flex:0 0 38px;width:38px;height:38px;border-radius:0;color:var(--fio-water);background:transparent;--mdc-icon-size:30px}
+:host>.hero h2{font-size:var(--ha-font-size-l,20px);font-weight:650;line-height:var(--ha-line-height-normal,1.4);letter-spacing:normal;color:var(--fio-water,var(--primary-color))}
 .graphs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
 .graph{position:relative;min-width:0;overflow:hidden;border:1px solid color-mix(in srgb,var(--fio-accent) 27%,var(--divider-color));border-radius:13px;background:var(--fio-panel);box-shadow:0 2px 8px color-mix(in srgb,var(--fio-accent) 7%,transparent)}
 .graph::before{content:'';position:absolute;inset:0 0 auto;height:3px;background:var(--fio-accent);opacity:.8;z-index:1}

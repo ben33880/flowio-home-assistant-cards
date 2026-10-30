@@ -7,7 +7,7 @@ for(const width of [390,1400])test(`titres hors cadres et switches alignés à $
   await page.evaluate(()=>{const d=(window as any).demo;d.config.display.equipment=['filtration','ph_pump','disinfection_pump','heater','lighting','robot','filling','electrolyzer'];if(window.innerWidth>1200)document.querySelector('main')!.style.maxWidth='none';d.apply();});
   const equipment=card.locator('.equipment-grid'),modes=card.locator('flowio-modes .modes-content');
   await expect(card.locator('.operations-pane')).toHaveCSS('border-top-width','0px');
-  await expect(card.locator('.dashboard-top')).toHaveCSS('gap',width===390?'18px':'32px');
+  await expect(card.locator('.dashboard-top')).toHaveCSS('gap','18px');
   const columns:number[][]=[];
   for(const [frame,heading,rows]of [
     [equipment,card.locator('.equipment-pane .section-heading'),equipment.locator('.control')],
