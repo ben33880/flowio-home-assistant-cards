@@ -1,16 +1,19 @@
 # Changelog
 
-## 0.1.0 — en préparation
+## 0.3.0 — en préparation
 
-Première version stable prévue après validation du workflow et essai Home Assistant.
+- Espacements et alignements uniformisés entre les sections, cuves rapprochées des équipements et section Horaires remontée.
+- Titres Supervision et Historique harmonisés, icônes mises en valeur et badge d'alarme vert à zéro / rouge clignotant en cas d'alarme.
+- Diagnostic de configuration masqué en l'absence d'entités manquantes.
+- Détails : [notes de release 0.3.0](docs/releases/v0.3.0.md).
 
-- Synthèse compacte : qualité de l'eau et pression, températures, équipements et modes.
-- Interrupteurs natifs Home Assistant pour les équipements et automatismes.
-- Stratégie de traitement en popup ; modes conditionnés aux équipements affichés.
-- Alarmes dans le header, détails et acquittement individuel disponible selon le firmware.
-- Frise de filtration 24 h, heure actuelle et compteurs de durée intégrés.
-- Cuves avec pourcentage et volume estimé ; états absents/indisponibles explicites.
-- Historiques ApexCharts alimentés par le Recorder.
-- Préparation manuelle d'un brouillon avec dépendances figées, provenance, licences et SHA-256.
+## 0.2.0
 
-La préversion 0.1.0-beta.1 déjà publiée n'est ni remplacée ni modifiée.
+- Entête native compacte avec traitement et compteur d'alarmes.
+- Jauges compactes et durées intégrées à la frise de filtration.
+- Estimations d'injection et configuration étendue des équipements, cuves et diagnostics.
+- Notes : [release 0.2.0](docs/releases/v0.2.0.md).
+
+## 0.1.0
+
+- Première version stable ; voir [notes de release 0.1.0](docs/releases/v0.1.0.md).
