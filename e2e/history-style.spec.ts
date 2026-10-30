@@ -13,8 +13,8 @@ for(const dark of[false,true])test(`style historique ${dark?'sombre':'clair'}`,a
  expect(await header.evaluate(el=>el.nextElementSibling?.matches('ha-card.fio-card'))).toBe(true);
  const frameStyle=await frame.evaluate(el=>{const style=getComputedStyle(el);return{border:style.borderTopWidth,borderRadius:style.borderTopLeftRadius,shadow:style.boxShadow};});
  expect(frameStyle).toEqual({border:'0px',borderRadius:'0px',shadow:'none'});
- const graphStyle=await graph.evaluate(el=>{const style=getComputedStyle(el);return{borderRadius:style.borderTopLeftRadius,shadow:style.boxShadow};});
- expect(graphStyle.borderRadius).toBe('13px');expect(graphStyle.shadow).not.toBe('none');
+ const graphStyle=await graph.evaluate(el=>{const style=getComputedStyle(el);return{background:style.backgroundColor,borderRadius:style.borderTopLeftRadius,shadow:style.boxShadow};});
+ expect(graphStyle.background).toBe(dark?'rgb(32, 40, 51)':'rgb(255, 255, 255)');expect(graphStyle.borderRadius).toBe('13px');expect(graphStyle.shadow).not.toBe('none');
  const periodState=await activePeriod.evaluate(el=>({appearance:el.getAttribute('appearance'),pressed:el.getAttribute('aria-pressed'),innerPressed:el.shadowRoot?.querySelector('button')?.getAttribute('aria-pressed')}));
  expect(periodState).toEqual({appearance:'accent',pressed:'true',innerPressed:'true'});
 });
