@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 — en préparation
+
+- Jauges agrandies et estimations d'injection placées sous la jauge correspondante.
+- Détails : [notes de release 0.3.1](docs/releases/v0.3.1.md).
+
 ## 0.3.0 — en préparation
 
 - Espacements et alignements uniformisés entre les sections, cuves rapprochées des équipements et section Horaires remontée.

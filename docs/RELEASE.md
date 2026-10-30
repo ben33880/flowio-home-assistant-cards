@@ -1,4 +1,4 @@
-# Préparer la release stable 0.3.0
+# Préparer la release stable 0.3.1
 
 Cette procédure prépare un brouillon. Elle ne publie pas automatiquement une version stable et n'envoie aucune commande à la piscine.
 
@@ -16,12 +16,12 @@ Ne pas activer des pompes ou changer un produit pour tester une interface sans p
 
 ## 3. Préparer le brouillon
 
-1. Vérifier package.json = 0.3.0, le lockfile et les notes docs/releases/v0.3.0.md. Le bump de version ne change pas les dépendances.
+1. Vérifier package.json = 0.3.1, le lockfile et les notes docs/releases/v0.3.1.md. Le bump de version ne change pas les dépendances.
 2. Actions > Prepare stable release draft (manual), sur main.
-3. Version : 0.3.0. Le workflow exige un contrôle de l'interface dans Home Assistant ; cocher ha_smoke_tested uniquement si ce contrôle a réellement été effectué.
+3. Version : 0.3.1. Le workflow exige un contrôle de l'interface dans Home Assistant ; cocher ha_smoke_tested uniquement si ce contrôle a réellement été effectué.
 4. Le workflow teste le commit exact de démarrage, utilise npm ci et reconstruit le bundle de production après les tests navigateur.
 5. Il génère la provenance et les mentions des dépendances réellement incluses, puis vérifie les empreintes après transfert entre jobs.
-6. Il crée uniquement un brouillon v0.3.0. Un tag ou une release existants ne sont jamais remplacés. Inspecter un brouillon partiel avant toute relance.
+6. Il crée uniquement un brouillon v0.3.1. Un tag ou une release existants ne sont jamais remplacés. Inspecter un brouillon partiel avant toute relance.
 
 ## 4. Publication distincte
 

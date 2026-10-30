@@ -1,6 +1,6 @@
 # Flow.io Home Assistant Cards
 
-Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. La version 0.3.0 est en préparation ; le brouillon de release et la publication restent des étapes distinctes. Les préversions existantes ne sont pas modifiées.
+Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. La version 0.3.1 est en préparation ; le brouillon de release et la publication restent des étapes distinctes. Les préversions existantes ne sont pas modifiées.
 
 | Carte Piscine — clair | Carte Piscine — sombre |
 |---|---|
@@ -93,7 +93,7 @@ Le lockfile est versionné et utilisé par la CI et les releases avec `npm ci`. 
 
 La démo utilise des données fictives et un substitut de `ha-switch` limité à `demo/`. Elle ne valide ni le véritable frontend HA ni le matériel. Les tests ne commandent aucun équipement réel.
 
-Voir [procédure de release](docs/RELEASE.md) et [notes 0.3.0](docs/releases/v0.3.0.md). Le workflow stable crée uniquement un brouillon après validation ; la publication reste une action manuelle distincte.
+Voir [procédure de release](docs/RELEASE.md) et [notes 0.3.1](docs/releases/v0.3.1.md). Le workflow stable crée uniquement un brouillon après validation ; la publication reste une action manuelle distincte.
 
 ## Licence
 
