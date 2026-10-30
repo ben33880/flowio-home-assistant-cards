@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 — en préparation
+
+- Libellé « Injecté aujourd’hui · estimé » déplacé sous chaque jauge pH/ORP correspondante.
+- Détails : [notes de release 0.3.2](docs/releases/v0.3.2.md).
+
 ## 0.3.1 — en préparation
 
 - Jauges agrandies et estimations d'injection placées sous la jauge correspondante.

@@ -2,7 +2,7 @@
 
 ## Avant publication
 
-0.3.1 est préparée dans le dépôt, mais son brouillon n'a pas encore été créé et la version n'est pas publiée. Modifier package.json ou les notes ne constitue pas une release. Les versions antérieures et préversions restent inchangées.
+0.3.2 est préparée dans le dépôt, mais son brouillon n'a pas encore été créé et la version n'est pas publiée. Modifier package.json ou les notes ne constitue pas une release. Les versions antérieures et préversions restent inchangées.
 
 Voir [la procédure de release](RELEASE.md) : lockfile testé et fusionné, contrôle de l'interface HA, puis workflow stable qui crée uniquement un brouillon. La publication publique est manuelle et distincte.
 
