@@ -102,8 +102,8 @@ jobs:
             echo "Tag $TAG already exists. Choose a new beta version; tags are never reused." >&2
             exit 1
           fi
+          cat > release-notes.md <<'NOTES'
           printf 'Source : %s (%s).\n\n' "$GITHUB_REF_NAME" "$TARGET_SHA" > release-notes.md
-          cat >> release-notes.md <<'NOTES'
           Préversion de développement Flow.io Home Assistant Cards.
 
           Contient la carte de pilotage configurable et la carte d'historiques natifs.
