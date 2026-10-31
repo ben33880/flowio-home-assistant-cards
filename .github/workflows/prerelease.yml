@@ -21,7 +21,7 @@ env:
 
 jobs:
   validate:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/feature/')
     runs-on: ubuntu-24.04
     steps:
       - name: Validate beta version
@@ -103,6 +103,7 @@ jobs:
             exit 1
           fi
           cat > release-notes.md <<'NOTES'
+          printf 'Source : %s (%s).\n\n' "$GITHUB_REF_NAME" "$TARGET_SHA" > release-notes.md
           Préversion de développement Flow.io Home Assistant Cards.
 
           Contient la carte de pilotage configurable et la carte d'historiques natifs.
