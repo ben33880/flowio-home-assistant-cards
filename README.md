@@ -35,8 +35,11 @@ display:
   equipment: [filtration, ph_pump, disinfection_pump, lighting]
   modes: [filtration_auto, winter, ph_auto, disinfection_auto, heater_auto, disinfection_type, swg_control, ph_dose_plus, o2_temp_comp]
   tanks: [ph_tank_percent, disinfection_tank_percent]
-  information: [treatment_type, alarm_active, alarm_count, diagnostics]
   timing: [filtration_schedule, filtration_runtime, ph_runtime, disinfection_runtime]
+  operations: [refill_ph, refill_disinfection, timed_override]
+  calculated_values: [v00, v01]
+  device_metrics: [water_in, water_out, current]
+  information: [treatment_type, alarm_active, alarm_count, diagnostics, network, system]
 tank_slots:
   ph: 1
   disinfection: 2
@@ -59,13 +62,16 @@ type: custom:flowio-history-card
 entity_prefix: fio
 hours_to_show: 24
 measurements: [water_temperature, ph, orp, pressure]
+calculated_values: [v00, v01]
 ```
 
-Le Recorder doit fournir les historiques des entités choisies. La carte ne remplace pas sa configuration.
+Le Recorder doit fournir les historiques des entités choisies. Les valeurs calculées peuvent aussi être affichées dans la carte piscine avec `display.calculated_values`. La carte ne remplace pas la configuration du Recorder.
 
 ## Commandes et limites
 
 - Consulter une valeur ouvre les informations de l'entité ; changer un contrôle peut commander la piscine.
+- Les boutons de remplissage et de remise à zéro, ainsi que les commandes de forçage temporaire, s’affichent uniquement lorsqu’ils sont sélectionnés. Une confirmation précède chaque action ; le forçage utilise la sélection globale Home Assistant du firmware.
+- La télémétrie d’équipement et les valeurs calculées sont en lecture seule. Les métriques équipement utilisent `device_slot` (0–15) ; vérifier l’affectation dans Flow.io. Réseau Wi-Fi et diagnostic système s’ajoutent via `display.information`.
 - Les démarrages sensibles et certains changements de stratégie demandent confirmation.
 - Un appel de service accepté ne confirme pas physiquement la marche d'un appareil. Les modes affichés suivent le retour d'état Home Assistant.
 - Désactiver un automatisme ne signifie pas nécessairement arrêter sa sortie.
