@@ -35,7 +35,7 @@ Les mesures calculées utilisent `sensor.<préfixe>_io_value_v00` à `v04`; leur
 
 Les métriques équipement utilisent `sensor.<préfixe>_data_<176 + 32 × device_slot + metric_id>`, conformément au catalogue firmware. Les mesures disponibles comprennent `water_in`, `water_out`, `compressor_in`, `compressor_out`, `ambient`, `coil`, `voltage`, `current` et d’autres métriques numériques. Le slot est physique, pas le rôle de la piscine : vérifier la liaison dans le firmware.
 
-`network` et `system` ajoutent les entités Discovery IP/MAC/RSSI, uptime, mémoire libre/minimale et fragmentation. Les listes choisies sont ajoutées au diagnostic des entités, sans remplacer les valeurs absentes par zéro.
+`network` et `system` affichent les entités Discovery IP/MAC/RSSI, uptime, mémoire libre/minimale et fragmentation dans une fenêtre dédiée. Son bouton « Système & Wi-Fi » apparaît à côté de l’en-tête « Supervision & pilotage » si au moins un de ces groupes est sélectionné. Les listes choisies restent ajoutées au diagnostic des entités ; les valeurs absentes sont explicites, jamais remplacées par zéro.
 
 ## Rupture de configuration
 

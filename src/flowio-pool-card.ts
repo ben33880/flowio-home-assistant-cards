@@ -35,7 +35,7 @@ private renderCard(c:PoolConfig,h:Hass){
     </div>
    </div>`:nothing}
    ${pumpTimes.length?html`<section data-group=overview><flowio-timing .hass=${h} .items=${pumpTimes} .prefix=${c.entity_prefix} .slots=${c.runtime_slots}></flowio-timing></section>`:nothing}
-   <flowio-firmware-panel .hass=${h} .prefix=${c.entity_prefix} .information=${d.information} .calculatedValues=${d.calculated_values as CalculatedValue[]} .deviceMetrics=${d.device_metrics as DeviceMetric[]} .deviceSlot=${c.device_slot} .operations=${d.operations as Operation[]}></flowio-firmware-panel>
+   <flowio-firmware-panel .hass=${h} .prefix=${c.entity_prefix} .calculatedValues=${d.calculated_values as CalculatedValue[]} .deviceMetrics=${d.device_metrics as DeviceMetric[]} .deviceSlot=${c.device_slot} .operations=${d.operations as Operation[]}></flowio-firmware-panel>
    ${d.information.includes('diagnostics')&&missing?html`<details><summary>Configuration · ${missing} entité(s) absente(s)</summary>${bindings.map(b=>html`<div class=diagnostic><span>${b.label} · ${entityStatus(h.states[b.id])} · ${h.states[b.id]?.state??'—'}</span><code>${b.id}</code></div>`)}<p class=muted>Échelles graphiques uniquement. Horaires calculés et compteurs journaliers sont distincts. Les sécurités restent dans Flow.io.</p></details>`:nothing}
   </div></ha-card>`;
 }

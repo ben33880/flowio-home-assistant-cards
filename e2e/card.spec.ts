@@ -32,7 +32,10 @@ test('actions firmware, forçage temporaire et télémétrie calculée',async({p
  });d.config.display={...d.config.display,equipment:[],information:['network','system'],operations:['refill_ph','timed_override'],calculated_values:['v00'],device_metrics:['water_in']};d.apply();});
  await expect(page.locator('[data-entity="sensor.fio_io_value_v00"]')).toContainText('12.4');
  await expect(page.locator('[data-entity="sensor.fio_data_195"]')).toContainText('28.1');
- await expect(page.locator('[data-panel=network]')).toContainText('192.0.2.10');
+ const information=page.locator('flowio-header-status'),informationDialog=information.locator('ha-dialog.information-dialog');
+ await information.getByRole('button',{name:'Ouvrir l’état système et le réseau Wi-Fi'}).click();
+ await expect(informationDialog.locator('[data-group=network]')).toContainText('192.0.2.10');
+ await informationDialog.locator('ha-button.close').click();
  page.on('dialog',dialog=>{void dialog.accept();});
  await page.locator('[data-operation=refill_ph]').click();
  await page.locator('[data-panel=timed-override] input').fill('30');

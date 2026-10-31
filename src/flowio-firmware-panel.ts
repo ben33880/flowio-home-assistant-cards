@@ -9,7 +9,6 @@ import {
   operationEntityId,
   overrideEntityIds,
   overrideOptions,
-  systemEntityId,
   type CalculatedValue,
   type DeviceMetric,
   type Operation
@@ -19,7 +18,6 @@ class FlowioFirmwarePanel extends LitElement {
   static properties = {
     hass: { attribute: false },
     prefix: { type: String },
-    information: { attribute: false },
     calculatedValues: { attribute: false },
     deviceMetrics: { attribute: false },
     deviceSlot: { type: Number },
@@ -31,7 +29,6 @@ class FlowioFirmwarePanel extends LitElement {
 
   declare hass?: Hass;
   prefix = '';
-  information: readonly string[] = [];
   calculatedValues: readonly CalculatedValue[] = [];
   deviceMetrics: readonly DeviceMetric[] = [];
   deviceSlot = 0;
@@ -214,24 +211,12 @@ class FlowioFirmwarePanel extends LitElement {
     </button>`;
   }
 
-  private infoView(group: 'network' | 'system') {
-    if (!this.information.includes(group)) return nothing;
-    const entries = group === 'network'
-      ? [['wifi_ip', 'Adresse IP'], ['wifi_mac', 'Adresse MAC'], ['wifi_rssi', 'Signal Wi-Fi']] as const
-      : [['sys_upt_mn', 'Temps de fonctionnement'], ['sys_hp_free', 'Mémoire libre'], ['sys_hp_min_free', 'Mémoire minimale libre'], ['sys_hp_frag', 'Fragmentation mémoire']] as const;
-    return html`<section class="panel" data-panel=${group}>
-      <h3><ha-icon icon=${group === 'network' ? 'mdi:lan' : 'mdi:chip'} aria-hidden="true"></ha-icon>${group === 'network' ? 'Réseau Wi-Fi' : 'État système'}</h3>
-      <div class="value-grid">${entries.map(([suffix, label]) => this.valueTile(systemEntityId(this.prefix, suffix), label))}</div>
-    </section>`;
-  }
-
   render() {
-    const hasPanel = this.operations.length || this.calculatedValues.length || this.deviceMetrics.length ||
-      this.information.includes('network') || this.information.includes('system');
+    const hasPanel = this.operations.length || this.calculatedValues.length || this.deviceMetrics.length;
     if (!hasPanel) return nothing;
     return html`<div class="firmware-panels">
       ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
-      ${this.operationsView()}${this.valuesView()}${this.infoView('network')}${this.infoView('system')}
+      ${this.operationsView()}${this.valuesView()}
     </div>`;
   }
 
