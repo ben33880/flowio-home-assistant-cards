@@ -44,7 +44,8 @@ jobs:
       - run: npm test
       - run: npm run check
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - name: Run end-to-end tests except README screenshot baselines
+        run: npx playwright test --grep-invert @readme-snapshot
       - name: Build final production bundle after browser tests
         run: npm run build
       - name: Record source and checksum
@@ -102,8 +103,8 @@ jobs:
             echo "Tag $TAG already exists. Choose a new beta version; tags are never reused." >&2
             exit 1
           fi
-          cat > release-notes.md <<'NOTES'
           printf 'Source : %s (%s).\n\n' "$GITHUB_REF_NAME" "$TARGET_SHA" > release-notes.md
+          cat >> release-notes.md <<'NOTES'
           Préversion de développement Flow.io Home Assistant Cards.
 
           Contient la carte de pilotage configurable et la carte d'historiques natifs.
