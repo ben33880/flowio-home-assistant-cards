@@ -42,8 +42,8 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   const heading = header.locator('hui-heading-card');
   const headingBox = (await heading.boundingBox())!;
   const triggerBox = (await triggerHost.boundingBox())!;
-  expect(triggerBox.x).toBeGreaterThanOrEqual(headingBox.x + headingBox.width - 1);
-  expect(triggerBox.x).toBeLessThanOrEqual(headingBox.x + headingBox.width + 10);
+  expect(Math.abs(triggerBox.x - (await header.boundingBox())!.x)).toBeLessThanOrEqual(1);
+  expect(headingBox.x).toBeGreaterThanOrEqual(triggerBox.x + triggerBox.width);
   expect(triggerBox.x + triggerBox.width).toBeLessThanOrEqual((await header.boundingBox())!.x + (await header.boundingBox())!.width);
   await expect(dialog).toHaveJSProperty('open', false);
   await expect(page.locator('flowio-firmware-panel [data-panel=network]')).toHaveCount(0);

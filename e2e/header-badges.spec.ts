@@ -8,6 +8,14 @@ for(const width of [390,1100])test(`contrat des badges natifs et actions à ${wi
  expect(await page.locator('flowio-pool-card .hero').evaluate(el=>el.scrollWidth>el.clientWidth+1)).toBe(false);
 });
 
+for(const width of [390,1100])test(`bouton Système à gauche, badges alignés à droite à ${width}px`,async({page})=>{
+ await page.setViewportSize({width,height:1200});await page.goto('/demo/');await page.evaluate(()=>{const d=(window as any).demo;d.config.display.information=['treatment_type','alarm_active','system'];d.apply();});
+ const status=page.locator('flowio-header-status'),trigger=status.locator('.information-trigger'),native=status.locator('hui-heading-card'),treatment=native.locator('ha-heading-badge[data-entity="select.fio_pl_modes_dis"]'),alarms=native.locator('ha-heading-badge[data-entity="sensor.fio_alm_active_count"]');
+ await expect(trigger).toBeVisible();await expect(treatment).toBeVisible();await expect(alarms).toBeVisible();
+ const statusBox=(await status.boundingBox())!,triggerBox=(await trigger.boundingBox())!,nativeBox=(await native.boundingBox())!,alarmBox=(await alarms.boundingBox())!;
+ expect(Math.abs(triggerBox.x-statusBox.x)).toBeLessThanOrEqual(1);expect(nativeBox.x).toBeGreaterThanOrEqual(triggerBox.x+triggerBox.width);expect(Math.abs(alarmBox.x+alarmBox.width-(nativeBox.x+nativeBox.width))).toBeLessThanOrEqual(2);
+});
+
 test('les libellés apparaissent au redimensionnement vers un grand écran',async({page})=>{
  await page.setViewportSize({width:390,height:1200});await page.goto('/demo/');const native=page.locator('flowio-header-status hui-heading-card'),treatment=native.locator('ha-heading-badge[data-entity="select.fio_pl_modes_dis"] .state'),alarms=native.locator('ha-heading-badge[data-entity="sensor.fio_alm_active_count"] .state');
  await expect(treatment).toHaveText('Chlore/Brome');await expect(alarms).toHaveText('0');
