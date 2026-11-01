@@ -19,8 +19,10 @@ jobs:
       - name: Run end-to-end tests except README screenshot baselines
         run: npx playwright test --grep-invert @readme-snapshot
       - name: Update README screenshot baselines
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: npx playwright test --grep @readme-snapshot --update-snapshots
       - name: Verify generated README screenshot baselines
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         run: npx playwright test --grep @readme-snapshot
       - name: Rebuild production bundle after browser tests
         run: npm run build
@@ -38,7 +40,7 @@ jobs:
           if-no-files-found: error
           path: dist/flowio-home-assistant-cards.js
       - uses: actions/upload-artifact@v6
-        if: success()
+        if: success() && github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           name: readme-card-screenshots
           if-no-files-found: error
