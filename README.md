@@ -39,6 +39,7 @@ display:
   tanks: [ph_tank_percent, disinfection_tank_percent]
   timing: [filtration_schedule, filtration_runtime, ph_runtime, disinfection_runtime]
   operations: [refill_ph, refill_disinfection, timed_override]
+  values_telemetry: true
   calculated_values: [v00, v01]
   device_metrics: [water_in, water_out, current]
   information: [treatment_type, alarm_active, alarm_count, diagnostics, network, system]
@@ -51,7 +52,7 @@ runtime_slots:
   disinfection: 2
 ```
 
-Toutes les options disponibles sont cochées par défaut dans les paramètres des deux cartes ; retirer celles qui ne sont pas utiles. La mesure dans « Qualité de l’eau » conserve le libellé ORP. Le traitement actif est déduit de l’entité firmware « Type de désinfection » ; le choix « Commande · type de désinfection » permet de le modifier. Le switch « Pompe désinfectant » pilote l’électrolyseur en mode électrolyse, ou la pompe désinfectant pour le chlore/brome et l’oxygène actif. En mode inconnu ou désactivé, les commandes dépendantes du traitement sont indisponibles. Le switch autonome de l’électrolyseur n’est plus affiché. Une liste vide masque le groupe. Les modes sont filtrés selon les équipements cochés et le mode firmware actif, sans effacer la sélection `display.modes`.
+Toutes les options disponibles sont cochées par défaut dans les paramètres des deux cartes ; retirer celles qui ne sont pas utiles. La mesure dans « Qualité de l’eau » conserve le libellé ORP. Le traitement actif est déduit de l’entité firmware « Type de désinfection » ; le choix « Commande · type de désinfection » permet de le modifier. Le switch « Pompe désinfectant » pilote l’électrolyseur en mode électrolyse, ou la pompe désinfectant pour le chlore/brome et l’oxygène actif. En mode inconnu ou désactivé, les commandes dépendantes du traitement sont indisponibles. Le switch autonome de l’électrolyseur n’est plus affiché. Une liste vide masque le groupe. Les modes sont filtrés selon les équipements cochés et le mode firmware actif, sans effacer la sélection `display.modes`. « Valeurs et télémétrie » est contrôlable avec `display.values_telemetry`, occupe toute la largeur, s’aligne à gauche avec « Qualité de l’eau » et apparaît après les horaires.
 
 Dans une vue Sections, `grid_options: { columns: full }` fait occuper à la carte toute la largeur de sa section par défaut lors de son ajout.
 
@@ -76,7 +77,7 @@ Le Recorder doit fournir les historiques des entités choisies. Les valeurs calc
 ## Commandes et limites
 
 - Consulter une valeur ouvre les informations de l'entité ; changer un contrôle peut commander la piscine.
-- Si `network` ou `system` est sélectionné dans `display.information`, une icône discrète « Système » apparaît près du titre « Supervision ». Son bouton est utilisable au toucher sur mobile. Le dialogue présente les informations réseau et système ; la ligne « Signal Wi-Fi » apparaît uniquement si sa valeur est disponible. Les icônes proviennent des entités Home Assistant ; tension (V) et courant (A) proviennent du slot `device_slot`.
+- Si `network` ou `system` est sélectionné dans `display.information`, une icône discrète « Système » apparaît à gauche du titre « Supervision » ; les badges « Traitement » et « Alertes » sont alignés à droite. Le bouton est utilisable au toucher sur mobile. Le dialogue présente les informations réseau et système ; la ligne « Signal Wi-Fi » apparaît uniquement si sa valeur est disponible. Les icônes proviennent des entités Home Assistant ; tension (V) et courant (A) sont lus depuis `sensor.<préfixe>_io_voltage` et `sensor.<préfixe>_io_current`, indépendamment de `device_slot`.
 - Les actions de remplissage sélectionnées apparaissent sous forme d’icônes avec infobulle à côté des jauges des cuves pH et désinfectant. Les remises à zéro sélectionnées pour filtration, pH et désinfection apparaissent sous leur durée correspondante dans « Horaires & durées ». Une durée est affichée automatiquement si son action de remise à zéro est sélectionnée. Les actions gardent leur confirmation et sont omises du panneau général lorsqu’elles sont placées auprès de leur valeur.
 - Les autres boutons s’affichent uniquement lorsqu’ils sont sélectionnés. Le forçage temporaire s’ouvre dans une boîte de dialogue Home Assistant avec le formulaire et les commandes disponibles du firmware ; sa sélection est globale et partagée entre utilisateurs.
 - La pression est affichée et historisée sans conversion, telle que fournie par l’entité firmware. Son échelle visuelle par défaut est numérique (0,15–1,8), sans hypothèse d’unité ni zone de qualité.

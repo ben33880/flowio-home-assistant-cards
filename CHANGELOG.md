@@ -2,14 +2,15 @@
 
 ## 0.3.3 — en préparation
 
-- Icône « Système » native HA placée près du titre, avec infobulle, style Flow.io accordé au thème et icônes issues des entités firmware dans le dialogue ; le signal Wi-Fi n’apparaît que s’il est disponible.
-- Tension (V) et courant (A) ajoutés au diagnostic système depuis le slot d’équipement configuré.
+- Icône « Système » native HA placée à gauche du titre ; badges « Traitement » et « Alertes » alignés à droite, avec style Flow.io accordé au thème et icônes firmware dans le dialogue.
+- Tension (V) et courant (A) ajoutés au diagnostic système depuis `sensor.<préfixe>_io_voltage` et `sensor.<préfixe>_io_current` ; le signal Wi-Fi n’apparaît que s’il est disponible.
 - Actions de remplissage pH/désinfectant placées en icônes à infobulle à côté des jauges de cuves correspondantes.
 - Remises à zéro des durées de filtration, pH et désinfection placées sous leurs compteurs dans « Horaires & durées » ; leur durée est ajoutée à l’affichage si nécessaire.
 - Toutes les options des paramètres de chaque carte sont sélectionnées par défaut ; l’utilisateur peut décocher les éléments inutiles.
 - Pourcentage des cuves agrandi ; volume restant et action de remplissage alignés au pied des jauges.
 - Forçage temporaire placé dans la section Filtration de « Horaires & durées », avec un bouton harmonisé.
 - Les nouvelles cartes occupent toute la largeur d’une vue Sections par défaut.
+- Valeurs calculées et télémétrie regroupées dans une section configurable, alignée à gauche sur « Qualité de l’eau » et étendue sur toute la largeur ; les horaires restent placés avant cette section.
 - Titre par défaut raccourci à « Supervision » ; bouton Système redessiné plus discret et fiabilisé pour le toucher sur mobile.
 - Type de traitement déduit de `select.<préfixe>_pl_modes_dis`, sans réglage manuel redondant ; les modes, les équipements, les injections et les actions suivent le mode firmware actif.
 - Routage distinct des commandes électrolyseur et désinfection chimique. En mode inconnu ou désactivé, les commandes dépendantes du traitement sont indisponibles. L’ancien `display.treatment` est accepté mais ignoré.
