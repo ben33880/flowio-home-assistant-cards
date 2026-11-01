@@ -9,7 +9,7 @@ function fixture() {
   const publish = vi.fn().mockResolvedValue(undefined);
   const hass: MaintenanceHass = {
     callService: publish,
-    connection: { subscribeMessage: vi.fn(async (callback, command) => {
+    connection: { subscribeMessage: vi.fn(async (callback: (message: MqttMessage) => void, command: Record<string, unknown>) => {
       const topic = String(command.topic);
       listeners.set(topic, callback);
       return () => { listeners.delete(topic); removals(topic); };
@@ -61,7 +61,8 @@ describe('contrat MQTT Maintenance', () => {
     send('status', '{"online":true}');
     send('cfg/alarms', '{"enabled":true}');
     expect(await client.setEnabled(false)).toBe(true);
-    expect(publish).toHaveBeenCalledExactlyOnceWith('mqtt', 'publish', {
+    expect(publish).toHaveBeenCalledTimes(1);
+    expect(publish).toHaveBeenCalledWith('mqtt', 'publish', {
       topic: 'pool/controller/cfg/set', payload: '{"alarms":{"enabled":false}}', qos: 1, retain: false
     });
     expect(client.snapshot().enabled).toBe(true);
