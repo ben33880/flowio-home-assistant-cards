@@ -20,6 +20,7 @@ class FlowioFirmwarePanel extends LitElement {
   static properties = {
     hass: { attribute: false },
     prefix: { type: String },
+    mqttTopic: { type: String },
     calculatedValues: { attribute: false },
     deviceMetrics: { attribute: false },
     deviceSlot: { type: Number },
@@ -37,6 +38,7 @@ class FlowioFirmwarePanel extends LitElement {
 
   declare hass?: Hass;
   prefix = '';
+  mqttTopic = '';
   calculatedValues: readonly CalculatedValue[] = [];
   deviceMetrics: readonly DeviceMetric[] = [];
   deviceSlot = 0;
@@ -247,7 +249,7 @@ class FlowioFirmwarePanel extends LitElement {
             <div class="override-content">
               <section class="maintenance-section" data-maintenance="alarms">
                 <h3><ha-icon icon="mdi:alarm-light-outline" aria-hidden="true"></ha-icon>Alarmes</h3>
-                <flowio-maintenance-alarms .hass=${h} .prefix=${this.prefix}
+                <flowio-maintenance-alarms .hass=${h} .prefix=${this.prefix} .mqttTopic=${this.mqttTopic}
                   .active=${this.overrideOpened && this.ready}
                   .disabled=${!!this.busy || !!this.overrideConfirmation}
                   @maintenance-busy=${(event: CustomEvent<{ busy: boolean }>) => { event.stopPropagation(); this.maintenanceBusy = event.detail.busy; }}>
