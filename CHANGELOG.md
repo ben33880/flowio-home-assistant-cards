@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.4 — en préparation
+
+- Correction ciblée de l’ouverture du dialogue « Système » sur mobile : le bouton interactif reste dans le composant Flow.io, hors du shadow DOM de l’en-tête natif Home Assistant.
+- Emplacement de 44 px réservé juste après le titre pour conserver la disposition « titre + Système à gauche, badges à droite » ; repositionnement au redimensionnement du composant ou du titre et lors des transitions mobile/desktop.
+- Bouton de secours conservé si le titre natif est introuvable ; nettoyage des éléments et des observateurs lors de la déconnexion du composant.
+- Tests tactiles ajoutés pour l’ouverture et la fermeture du dialogue et les transitions mobile/desktop ; les assertions existantes d’alignement des badges sont conservées. Validation du dernier correctif encore à confirmer.
+- Préparation des métadonnées et des notes ; synchronisation du lockfile et génération des artefacts encore requises avant release.
+- Détails : [notes de release 0.3.4](docs/releases/v0.3.4.md).
+
 ## 0.3.3 — en préparation
 
 - Icône « Système » native HA placée juste après le titre ; badges « Traitement » et « Alertes » alignés à droite, avec style Flow.io accordé au thème et icônes firmware dans le dialogue.

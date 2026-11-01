@@ -40,11 +40,12 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   await page.locator('#theme').click();
   await expect(trigger).toHaveText('');
   const heading = header.locator('hui-heading-card');
+  await expect(heading.locator('button.information-trigger')).toHaveCount(0);
+  expect(await triggerHost.evaluate(element => (element.getRootNode() as ShadowRoot).host.localName)).toBe('flowio-header-status');
   const triggerBox = (await triggerHost.boundingBox())!;
-  const titleBox = (await heading.locator('h2').boundingBox())!;
-  expect(triggerBox.x).toBeGreaterThanOrEqual(titleBox.x + titleBox.width);
-  expect(triggerBox.x).toBeLessThanOrEqual(titleBox.x + titleBox.width + 10);
-  expect(triggerBox.x + triggerBox.width).toBeLessThanOrEqual((await header.boundingBox())!.x + (await header.boundingBox())!.width);
+  const headerBox = (await header.boundingBox())!;
+  expect(triggerBox.x).toBeGreaterThanOrEqual(headerBox.x);
+  expect(triggerBox.x + triggerBox.width).toBeLessThanOrEqual(headerBox.x + headerBox.width + 1);
   await expect(dialog).toHaveJSProperty('open', false);
   await expect(page.locator('flowio-firmware-panel [data-panel=network]')).toHaveCount(0);
   await trigger.click();
@@ -98,4 +99,58 @@ test('masque la ligne de signal Wi-Fi lorsque sa valeur est absente', async ({ p
     demo.apply();
   });
   await expect(network.locator('[data-entity="sensor.fio_wifi_rssi"]')).toHaveCount(0);
+});
+
+test.describe('bouton système tactile', () => {
+  test.use({ hasTouch: true, viewport: { width: 390, height: 900 } });
+
+  test('ouvre la popup par tap après les changements mobile et desktop', async ({ page }) => {
+    await page.goto('/demo/');
+    await page.evaluate(() => {
+      const demo = (window as any).demo;
+      demo.config.display.information = ['network', 'system'];
+      demo.apply();
+    });
+
+    const header = page.locator('flowio-header-status');
+    const heading = header.locator('hui-heading-card');
+    const trigger = header.locator('button.information-trigger:visible');
+    const dialog = header.locator('ha-dialog.information-dialog');
+    for (const width of [390, 1000, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect(trigger).toHaveCount(1);
+      await expect(trigger).toBeEnabled();
+      if (width < 700) {
+        await expect(heading.locator('button.information-trigger')).toHaveCount(0);
+        expect(await trigger.evaluate(element => (element.getRootNode() as ShadowRoot).host.localName)).toBe('flowio-header-status');
+      } else {
+        await expect(heading.locator('button.information-trigger')).toBeVisible();
+        expect(await trigger.evaluate(element => element.previousElementSibling instanceof HTMLHeadingElement)).toBe(true);
+      }
+      await trigger.tap();
+      await expect(dialog).toHaveJSProperty('open', true);
+      await dialog.locator('ha-button.close').tap();
+      await expect(dialog).toHaveJSProperty('open', false);
+    }
+  });
+
+  test('conserve le bouton de secours si le titre natif est introuvable sur desktop', async ({ page }) => {
+    await page.setViewportSize({ width: 1000, height: 900 });
+    await page.goto('/demo/');
+    await page.evaluate(() => {
+      const demo = (window as any).demo;
+      demo.config.display.information = ['system'];
+      demo.apply();
+    });
+    const header = page.locator('flowio-header-status');
+    const heading = header.locator('hui-heading-card');
+    await expect(heading.locator('button.information-trigger')).toBeVisible();
+    await heading.locator('h2').evaluate(element => element.remove());
+    await expect(heading.locator('button.information-trigger')).toHaveCount(0);
+    const trigger = header.locator('button.information-trigger:visible');
+    await expect(trigger).toHaveCount(1);
+    expect(await trigger.evaluate(element => (element.getRootNode() as ShadowRoot).host.localName)).toBe('flowio-header-status');
+    await trigger.tap();
+    await expect(header.locator('ha-dialog.information-dialog')).toHaveJSProperty('open', true);
+  });
 });
