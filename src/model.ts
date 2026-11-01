@@ -55,7 +55,7 @@ export const DISPLAY_OPTIONS = {
 export type DisplayGroup = keyof typeof DISPLAY_OPTIONS;
 export type DisplayConfig = {
   [K in DisplayGroup]: Array<(typeof DISPLAY_OPTIONS)[K][number]>
-};
+} & { values_telemetry: boolean };
 export interface PoolConfig {
   type: string;
   title: string;
@@ -106,10 +106,12 @@ export function normalizeConfig(input: unknown): PoolConfig {
   const grid_options = raw.grid_options === undefined ? undefined : configObject(raw.grid_options);
   const d = raw.display === undefined ? {} : configObject(raw.display);
   for (const key of Object.keys(d)) {
-    if (key !== 'treatment' && !Object.prototype.hasOwnProperty.call(DISPLAY_OPTIONS, key)) {
+    if (key !== 'treatment' && key !== 'values_telemetry' && !Object.prototype.hasOwnProperty.call(DISPLAY_OPTIONS, key)) {
       throw new Error(`Groupe display inconnu : ${key}`);
     }
   }
+  const valuesTelemetry = d.values_telemetry ?? true;
+  if (typeof valuesTelemetry !== 'boolean') throw new Error('L’affichage des valeurs et de la télémétrie doit être un booléen');
 
   const display: DisplayConfig = {
     measurements: selection(d.measurements, DISPLAY_OPTIONS.measurements, DISPLAY_OPTIONS.measurements),
@@ -123,6 +125,7 @@ export function normalizeConfig(input: unknown): PoolConfig {
     timing: selection(d.timing, DISPLAY_OPTIONS.timing, DISPLAY_OPTIONS.timing),
     calculated_values: selection(d.calculated_values, CALCULATED_VALUES, CALCULATED_VALUES),
     device_metrics: selection(d.device_metrics, DEVICE_METRICS, DEVICE_METRICS),
+    values_telemetry: valuesTelemetry,
     operations: selection(d.operations, OPERATIONS, OPERATIONS)
   };
 
@@ -224,8 +227,8 @@ export function expectedBindings(c: PoolConfig, hass?: Hass) {
       .flatMap(item => injectionBindings(c.entity_prefix, c.runtime_slots, item)),
     ...visibleModes(c.display.modes, c.display.equipment, treatment).map(mode => ({ id: modeId(c.entity_prefix, mode), label: MODES[mode].label })),
     ...c.display.timing.flatMap(item => timingBindings(c.entity_prefix, c.runtime_slots, item)),
-    ...calculatedBindings(c.entity_prefix, c.display.calculated_values),
-    ...deviceMetricBindings(c.entity_prefix, c.device_slot, c.display.device_metrics),
+    ...(c.display.values_telemetry ? calculatedBindings(c.entity_prefix, c.display.calculated_values) : []),
+    ...(c.display.values_telemetry ? deviceMetricBindings(c.entity_prefix, c.device_slot, c.display.device_metrics) : []),
     ...operationBindings(c.entity_prefix, configuredOperations(c, treatment)),
     ...systemBindings(c.entity_prefix, c.display.information),
     ...(c.display.information.includes('system') ? powerBindings(c.entity_prefix) : [])

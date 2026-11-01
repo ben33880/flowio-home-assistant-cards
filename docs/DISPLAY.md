@@ -11,10 +11,11 @@ Le titre d'entête vient du champ `title`, utilisé tel quel ; sa valeur par dé
 - display.equipment : filtration, ph_pump, disinfection_pump, heater, robot, lighting, filling. Le switch autonome « Électrolyseur » n’est plus affiché ; la commande de la pompe désinfectant cible l’électrolyseur en mode firmware « Electrolyse » et la pompe désinfectant en mode « Chlore/Brome » ou « Oxygène actif ».
 - display.tanks : ph_tank, ph_tank_percent, disinfection_tank, disinfection_tank_percent.
 - display.information : treatment_type, alarm_active, alarm_count, diagnostics, network, system.
+- display.values_telemetry : booléen qui affiche ou masque la section « Valeurs et télémétrie » ; activé par défaut. Les sélections de valeurs et métriques restent conservées lorsqu’elle est masquée.
 - display.operations : actions sélectionnées parmi refill_ph, refill_disinfection, reset_filtration, reset_ph, reset_disinfection, reset_filling, reset_electrolyzer, reset_all, timed_override. Les actions de remise à zéro restent à côté de leur durée correspondante. Le panneau général « Actions Flow.io » n’est plus affiché ; le forçage temporaire conserve son bouton et son dialogue natif.
 - En mode firmware « Electrolyse », la jauge ORP reste affichée mais l’estimation « Désinfection injectée aujourd’hui » est masquée ; l’estimation pH reste indépendante.
-- display.calculated_values : v00 à v04, mesures calculées publiées par le firmware.
-- display.device_metrics : consigne/valeur relue et métriques de pompe à chaleur disponibles. `device_slot` (0–15) choisit l’équipement.
+- display.calculated_values : v00 à v04, mesures calculées publiées par le firmware. Cette option et `display.device_metrics` sont regroupées dans la section « Valeurs et télémétrie ».
+- display.device_metrics : consigne/valeur relue et métriques de pompe à chaleur disponibles. `device_slot` (0–15) choisit l’équipement lorsque cette section est affichée.
 - Le type de traitement est déduit de `select.<préfixe>_pl_modes_dis` : « Désactivé », « Electrolyse », « Chlore/Brome » ou « Oxygène actif ». Il n’existe plus de sélection manuelle redondante dans `display`. Les anciennes configurations comportant `display.treatment` restent acceptées, mais cette valeur est ignorée. Si l’entité manque ou a un état inconnu, la carte n’envoie pas d’action désinfection et maintient indisponibles les commandes dont la cible dépend du traitement.
 
 Chaque liste conserve son ordre, déduplique ses choix et peut être vide. Effacer un choix multiple transmis comme null produit une liste vide, pas un retour aux valeurs par défaut. Un groupe omis utilise toutes les options disponibles de ce groupe ; un groupe explicitement vidé reste vide.
