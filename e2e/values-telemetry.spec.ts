@@ -6,21 +6,27 @@ test('valeurs et télémétrie regroupées, alignées et masquables', async ({ p
   await page.locator('main').evaluate(element => { (element as HTMLElement).style.maxWidth = 'none'; });
 
   const card = page.locator('flowio-pool-card');
-  const firmwarePanel = card.locator('flowio-firmware-panel');
+  const firmwarePanel = card.locator('flowio-firmware-panel.values-telemetry-panel');
   const valuesPanel = firmwarePanel.locator('[data-panel=values]');
-  const dashboardSide = card.locator('.dashboard-side');
+  const dashboardLayout = card.locator('.dashboard-layout');
+  const quality = card.locator('.measurement-groups');
   await expect(valuesPanel).toBeVisible();
   const panelBox = (await firmwarePanel.boundingBox())!;
-  const sideBox = (await dashboardSide.boundingBox())!;
-  expect(Math.abs(panelBox.x - sideBox.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(panelBox.width - sideBox.width)).toBeLessThanOrEqual(1);
+  const layoutBox = (await dashboardLayout.boundingBox())!;
+  const qualityBox = (await quality.boundingBox())!;
+  expect(Math.abs(panelBox.x - layoutBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(panelBox.x - qualityBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(panelBox.width - layoutBox.width)).toBeLessThanOrEqual(1);
+  const valuesBox = (await valuesPanel.boundingBox())!;
+  expect(Math.abs(valuesBox.x - panelBox.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(valuesBox.width - panelBox.width)).toBeLessThanOrEqual(1);
 
   await page.evaluate(() => {
     const demo = (window as any).demo;
     demo.config.display.values_telemetry = false;
     demo.apply();
   });
-  await expect(valuesPanel).toHaveCount(0);
+  await expect(firmwarePanel).toHaveCount(0);
 
   const editor = await page.evaluate(async () => {
     const demo = (window as any).demo;

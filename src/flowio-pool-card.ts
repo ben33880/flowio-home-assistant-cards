@@ -27,7 +27,7 @@ private renderCard(c:PoolConfig,h:Hass){
   <header class=hero><flowio-header-status .hass=${h} .prefix=${c.entity_prefix} .deviceSlot=${c.device_slot} .heading=${c.title} .information=${d.information}></flowio-header-status></header>
   <ha-card class=fio-card><div class=body>
    ${this.error?html`<p class=warning role=alert>${this.error}</p>`:nothing}
-   ${hasDashboard?html`<div class=dashboard-top>
+   ${hasDashboard?html`<div class=dashboard-layout><div class=dashboard-top>
     ${groups.length?html`<section class=measurements-pane><div class=measurement-groups data-group=measurements style=${`--measurement-columns:${measurementColumns}`}>
      ${groups.map(group=>html`<section class=measurement-section data-section=${group.key}>${this.heading(group.key==='quality'?'mdi:water-check-outline':group.key==='pressure'?'mdi:gauge':'mdi:thermometer',group.title)}<div class=measurement-group data-measurement-group=${group.key}>${group.key==='quality'?this.qualityMeasurements(group.roles):group.roles.length?html`<div class=grid>${group.roles.map(role=>this.measure(role))}</div>`:nothing}</div></section>`)}
     </div></section>`:nothing}
@@ -37,9 +37,9 @@ private renderCard(c:PoolConfig,h:Hass){
       ${shownModes.length?html`<flowio-modes .hass=${h} .prefix=${c.entity_prefix} .items=${shownModes} .first=${!d.equipment.length}></flowio-modes>`:nothing}
      </div></section>`:nothing}
      ${tanks.length?html`<section class=tank-pane>${this.heading('mdi:beaker-outline','Cuves de traitement')}<div class=grid data-group=tanks>${tanks.map(role=>this.tankMeasure(role))}</div></section>`:nothing}
-     <flowio-firmware-panel style="grid-column:1/-1;min-width:0;justify-self:stretch;box-sizing:border-box" .hass=${h} .prefix=${c.entity_prefix} .calculatedValues=${valuesTelemetry?d.calculated_values as CalculatedValue[]:[]} .deviceMetrics=${valuesTelemetry?d.device_metrics as DeviceMetric[]:[]} .deviceSlot=${c.device_slot} .operations=${effectiveOperations} .inlineOperations=${inline}></flowio-firmware-panel>
+     ${effectiveOperations.length?html`<flowio-firmware-panel .hass=${h} .prefix=${c.entity_prefix} .deviceSlot=${c.device_slot} .operations=${effectiveOperations} .inlineOperations=${inline}></flowio-firmware-panel>`:nothing}
     </div>
-   </div>`:nothing}
+   </div>${valuesTelemetry?html`<flowio-firmware-panel class=values-telemetry-panel .hass=${h} .prefix=${c.entity_prefix} .calculatedValues=${d.calculated_values as CalculatedValue[]} .deviceMetrics=${d.device_metrics as DeviceMetric[]} .deviceSlot=${c.device_slot}></flowio-firmware-panel>`:nothing}</div>`:nothing}
    ${pumpTimes.length?html`<section data-group=overview><flowio-timing .hass=${h} .items=${pumpTimes} .prefix=${c.entity_prefix} .slots=${c.runtime_slots} .operations=${timingOperations} .showOverride=${d.operations.includes('timed_override')} .operationTargets=${{reset_disinfection:treatment&&treatment!=='disabled'?firmwareOperation(c,'reset_disinfection',treatment):undefined}} @flowio-operation=${(event:Event)=>this.runScheduledOperation(event)} @flowio-open-override=${()=>this.openTimedOverride()}></flowio-timing></section>`:nothing}
    ${d.information.includes('diagnostics')&&missing?html`<details><summary>Configuration · ${missing} entité(s) absente(s)</summary>${bindings.map(b=>html`<div class=diagnostic><span>${b.label} · ${entityStatus(h.states[b.id])} · ${h.states[b.id]?.state??'—'}</span><code>${b.id}</code></div>`)}<p class=muted>Échelles graphiques uniquement. Horaires calculés et compteurs journaliers sont distincts. Les sécurités restent dans Flow.io.</p></details>`:nothing}
   </div></ha-card>`;
