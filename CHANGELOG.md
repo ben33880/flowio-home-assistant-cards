@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.5 — en préparation
+
+- Ajout du paramètre permanent `mqtt_topic` à la carte, distinct du préfixe Home Assistant et disponible dans l’éditeur visuel.
+- La popup Maintenance lit automatiquement l’état des alarmes via le topic MQTT configuré ; la saisie locale du topic est supprimée.
+- Les souscriptions MQTT sont fermées à la fermeture de la popup, au changement de topic, de préfixe ou de connexion ; les messages d’une ancienne cible sont ignorés.
+- Sans `mqtt_topic`, le pilotage des alarmes reste indisponible avec un message explicite, tandis que le forçage temporaire reste utilisable.
+- Le test e2e du forçage cible explicitement le champ « Durée (minutes) », évitant l’ambiguïté avec le nouveau switch d’évaluation des alarmes.
+- Détails : [notes de release 0.3.5](docs/releases/v0.3.5.md).
+
 ## 0.3.4 — en préparation
 
 - Correction ciblée de l’ouverture du dialogue « Système » sur mobile : le bouton interactif reste dans le composant Flow.io, hors du shadow DOM de l’en-tête natif Home Assistant.

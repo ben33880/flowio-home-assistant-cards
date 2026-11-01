@@ -14,17 +14,20 @@ import {
   type Operation
 } from './firmware-model';
 import { ensureHaElements } from './ha-controls';
+import './flowio-maintenance-alarms';
 
 class FlowioFirmwarePanel extends LitElement {
   static properties = {
     hass: { attribute: false },
     prefix: { type: String },
+    mqttTopic: { type: String },
     calculatedValues: { attribute: false },
     deviceMetrics: { attribute: false },
     deviceSlot: { type: Number },
     operations: { attribute: false },
     inlineOperations: { attribute: false },
     busy: { state: true },
+    maintenanceBusy: { state: true },
     error: { state: true },
     overrideDuration: { state: true },
     overrideTarget: { state: true },
@@ -35,12 +38,14 @@ class FlowioFirmwarePanel extends LitElement {
 
   declare hass?: Hass;
   prefix = '';
+  mqttTopic = '';
   calculatedValues: readonly CalculatedValue[] = [];
   deviceMetrics: readonly DeviceMetric[] = [];
   deviceSlot = 0;
   operations: readonly Operation[] = [];
   inlineOperations: readonly Operation[] = [];
   private busy = '';
+  private maintenanceBusy = false;
   private error = '';
   private overrideDuration?: number;
   private overrideTarget = '';
@@ -69,6 +74,7 @@ class FlowioFirmwarePanel extends LitElement {
     this.uiGeneration++;
     this.ready = false;
     this.overrideOpened = false;
+    this.maintenanceBusy = false;
   }
 
   protected willUpdate(changed: PropertyValues) {
@@ -77,6 +83,7 @@ class FlowioFirmwarePanel extends LitElement {
       this.overrideTarget = '';
       this.overrideDuration = undefined;
       this.overrideConfirmation = undefined;
+      this.maintenanceBusy = false;
       this.error = '';
     }
   }
@@ -104,7 +111,7 @@ class FlowioFirmwarePanel extends LitElement {
 
   private async invoke(domain: string, service: string, entityId: string, data: Record<string, unknown> = {}) {
     const hass = this.hass;
-    if (!hass || !this.actionAvailable(entityId) || this.busy) return false;
+    if (!hass || !this.actionAvailable(entityId) || this.busy || this.maintenanceBusy) return false;
     this.busy = entityId;
     this.error = '';
     try {
@@ -120,7 +127,7 @@ class FlowioFirmwarePanel extends LitElement {
   }
 
   async runOperation(operation: Operation, stillAllowed: () => boolean = () => true) {
-    if (!this.operations.includes(operation) || !stillAllowed() || this.busy) return;
+    if (!this.operations.includes(operation) || !stillAllowed() || this.busy || this.maintenanceBusy) return;
     const definition = OPERATION_DEFINITIONS[operation];
     const entityId = operationEntityId(this.prefix, operation);
     if (!this.actionAvailable(entityId)) return;
@@ -148,13 +155,14 @@ class FlowioFirmwarePanel extends LitElement {
   }
 
   private requestOverride(action: 'on' | 'off' | 'release') {
+    if (this.maintenanceBusy || this.busy) return;
     this.error = '';
     this.overrideConfirmation = action;
   }
 
   private async confirmOverride() {
     const action = this.overrideConfirmation;
-    if (!action) return;
+    if (!action || this.maintenanceBusy || this.busy) return;
     this.overrideConfirmation = undefined;
     await this.executeOverride(action);
   }
@@ -165,6 +173,7 @@ class FlowioFirmwarePanel extends LitElement {
 
   private async updateOverrideForm(event: CustomEvent<{ value?: Record<string, unknown> }>) {
     event.stopPropagation();
+    if (this.maintenanceBusy) return;
     const values = event.detail?.value;
     if (!values) return;
     const form = event.currentTarget as HTMLElement & { data: Record<string, unknown> };
@@ -188,6 +197,7 @@ class FlowioFirmwarePanel extends LitElement {
   }
 
   private async executeOverride(action: 'on' | 'off' | 'release') {
+    if (this.maintenanceBusy || this.busy) return;
     const ids = overrideEntityIds(this.prefix);
     const target = this.overrideTarget || this.hass?.states[ids.target]?.state;
     const status = this.hass?.states[ids.state];
@@ -226,21 +236,31 @@ class FlowioFirmwarePanel extends LitElement {
           const entityId = operationEntityId(this.prefix, operation);
           const state = h?.states[entityId];
           return html`<button type="button" class="action-button" data-operation=${operation}
-            ?disabled=${!this.actionAvailable(entityId) || !!this.busy}
+            ?disabled=${!this.actionAvailable(entityId) || !!this.busy || this.maintenanceBusy}
             @click=${() => this.runOperation(operation)}>${definition.label}
             <small>${!state ? 'Entité absente' : !available(state) ? 'Indisponible' : 'Confirmer avant exécution'}</small></button>`;
         })}</div>` : nothing}
         ${showOverride ? html`
-          <ha-dialog class="override-dialog" data-panel="timed-override"
+          <ha-dialog class="override-dialog maintenance-dialog" data-panel="timed-override"
             .open=${this.overrideOpened && this.ready}
-            .headerTitle=${'Forçage temporaire'}
-            .heading=${'Forçage temporaire'}
+            .headerTitle=${'Maintenance'}
+            .heading=${'Maintenance'}
             @closed=${(event: Event) => { if (event.target === event.currentTarget) this.closeOverride(); }}>
             <div class="override-content">
+              <section class="maintenance-section" data-maintenance="alarms">
+                <h3><ha-icon icon="mdi:alarm-light-outline" aria-hidden="true"></ha-icon>Alarmes</h3>
+                <flowio-maintenance-alarms .hass=${h} .prefix=${this.prefix} .mqttTopic=${this.mqttTopic}
+                  .active=${this.overrideOpened && this.ready}
+                  .disabled=${!!this.busy || !!this.overrideConfirmation}
+                  @maintenance-busy=${(event: CustomEvent<{ busy: boolean }>) => { event.stopPropagation(); this.maintenanceBusy = event.detail.busy; }}>
+                </flowio-maintenance-alarms>
+              </section>
+              <section class="maintenance-section" data-maintenance="override">
+              <h3><ha-icon icon="mdi:timer-cog-outline" aria-hidden="true"></ha-icon>Forçage</h3>
               <p class="override-intro">Choisir un équipement et la durée du forçage. Flow.io conserve la responsabilité des sécurités.</p>
               <ha-form class="override-form" .hass=${h}
                 .data=${{ target: this.overrideTarget || target?.state || '', duration: currentDuration }}
-                .disabled=${!this.ready || !available(target) || !available(duration) || !options.length || !!this.busy}
+                .disabled=${!this.ready || !available(target) || !available(duration) || !options.length || !!this.busy || this.maintenanceBusy}
                 .schema=${[
                   { name: 'target', selector: { select: { mode: 'dropdown', options } } },
                   { name: 'duration', selector: { number: { min: 1, max: 1440, step: 1, mode: 'box' } } }
@@ -265,7 +285,7 @@ class FlowioFirmwarePanel extends LitElement {
                 const label = action === 'on' ? 'Forcer en marche' : action === 'off' ? 'Forcer à l’arrêt' : 'Terminer le forçage';
                 return html`<ha-button class="override-action" data-override=${action}
                   appearance=${action === 'on' ? 'accent' : action === 'off' ? 'outlined' : 'plain'}
-                  .disabled=${!this.ready || !enabled || !!this.busy}
+                  .disabled=${!this.ready || !enabled || !!this.busy || this.maintenanceBusy}
                   .accessibleLabel=${label} @click=${() => this.requestOverride(action)}>
                   ${label}
                   ${!entity || !this.actionAvailable(entityId) ? html`<small>${!entity ? 'Entité absente' : 'Indisponible'}</small>` : nothing}
@@ -282,12 +302,14 @@ class FlowioFirmwarePanel extends LitElement {
                 <ha-button class="override-action" data-cancel-override appearance="plain"
                   .accessibleLabel=${'Annuler le forçage'} @click=${() => this.cancelOverride()}>Annuler</ha-button>
                 <ha-button class="override-action" data-confirm-override appearance="accent"
-                  .disabled=${!!this.busy} .accessibleLabel=${'Confirmer le forçage'}
+                  .disabled=${!!this.busy || this.maintenanceBusy} .accessibleLabel=${'Confirmer le forçage'}
                   @click=${() => this.confirmOverride()}>Confirmer</ha-button>
               </div>` : nothing}
               ${this.error ? html`<ha-alert class="override-error" alert-type="error">${this.error}</ha-alert>` : nothing}
               <p class="note">La sélection est commune à Home Assistant. L’acceptation d’une commande ne confirme pas la marche réelle. Utiliser uniquement avec un contrôleur Flow.io compatible.</p>
+              </section>
             </div>
+            <ha-button slot="footer" data-close-maintenance appearance="plain" @click=${() => this.closeOverride()}>Fermer</ha-button>
           </ha-dialog>` : nothing}
       </div>`;
   }
@@ -345,6 +367,7 @@ class FlowioFirmwarePanel extends LitElement {
     .value-tile span{font-size:.68rem;color:var(--secondary-text-color)}.value-tile strong{font-size:.85rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
     .value-tile small{font-size:.7rem;font-weight:400;color:var(--secondary-text-color)}
     .override-content{display:grid;gap:14px;min-width:min(360px,calc(100vw - 64px));max-width:520px;padding-block:4px}
+    .maintenance-section{display:grid;gap:14px;min-width:0}.maintenance-section h3{margin:0}.maintenance-section+.maintenance-section{padding-top:16px;border-top:1px solid var(--divider-color)}
     .override-intro,.override-state{margin:0;font-size:.76rem;line-height:1.45}
     .override-state{padding:10px 12px;border:1px solid var(--divider-color);border-radius:11px;background:var(--secondary-background-color);font-weight:600}
     .override-form{display:block;width:100%;min-width:0}

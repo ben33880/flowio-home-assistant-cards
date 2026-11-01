@@ -53,7 +53,7 @@ test('actions firmware, forçage temporaire et télémétrie calculée',async({p
  await expect(overrideDialog.locator('ha-form')).toBeVisible();
  await overrideDialog.locator('ha-form select').selectOption('pd0');
  await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls.length)).toBe(2);
- await page.locator('[data-panel=timed-override] input').fill('30');
+ await page.getByRole('spinbutton',{name:'Durée (minutes)'}).fill('30');
  await page.locator('[data-override=on]').click();
  await expect(overrideDialog.locator('[data-confirm-override]')).toBeVisible();
  await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls.length)).toBe(2);

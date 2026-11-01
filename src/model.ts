@@ -7,6 +7,7 @@ import {
   type Role,
   type TankSlots
 } from './entities';
+import { normalizeMqttRoot } from './maintenance-mqtt';
 import { normalizeVisuals, type Visuals } from './gauge-model';
 import {
   TIMING_ITEMS,
@@ -60,6 +61,7 @@ export interface PoolConfig {
   type: string;
   title: string;
   entity_prefix: string;
+  mqtt_topic?: string;
   grid_options?: Record<string, unknown>;
   display: DisplayConfig;
   tank_slots: TankSlots;
@@ -103,6 +105,8 @@ export function normalizeConfig(input: unknown): PoolConfig {
 
   const title = raw.title ?? 'Supervision';
   if (typeof title !== 'string') throw new Error('Titre invalide');
+  if (raw.mqtt_topic !== undefined && typeof raw.mqtt_topic !== 'string') throw new Error('mqtt_topic doit être un texte');
+  const mqtt_topic = typeof raw.mqtt_topic === 'string' && raw.mqtt_topic.trim() ? normalizeMqttRoot(raw.mqtt_topic) : undefined;
   const grid_options = raw.grid_options === undefined ? undefined : configObject(raw.grid_options);
   const d = raw.display === undefined ? {} : configObject(raw.display);
   for (const key of Object.keys(d)) {
@@ -148,6 +152,7 @@ export function normalizeConfig(input: unknown): PoolConfig {
     type: 'custom:flowio-pool-card',
     title,
     entity_prefix: normalizePrefix(raw.entity_prefix),
+    ...(mqtt_topic ? { mqtt_topic } : {}),
     ...(grid_options ? { grid_options } : {}),
     display,
     tank_slots,
