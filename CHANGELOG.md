@@ -2,7 +2,7 @@
 
 ## 0.3.3 — en préparation
 
-- Icône « Système » native HA placée à gauche du titre ; badges « Traitement » et « Alertes » alignés à droite, avec style Flow.io accordé au thème et icônes firmware dans le dialogue.
+- Icône « Système » native HA placée juste après le titre ; badges « Traitement » et « Alertes » alignés à droite, avec style Flow.io accordé au thème et icônes firmware dans le dialogue.
 - Tension (V) et courant (A) ajoutés au diagnostic système depuis `sensor.<préfixe>_io_voltage` et `sensor.<préfixe>_io_current` ; le signal Wi-Fi n’apparaît que s’il est disponible.
 - Actions de remplissage pH/désinfectant placées en icônes à infobulle à côté des jauges de cuves correspondantes.
 - Remises à zéro des durées de filtration, pH et désinfection placées sous leurs compteurs dans « Horaires & durées » ; leur durée est ajoutée à l’affichage si nécessaire.

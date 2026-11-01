@@ -22,7 +22,7 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   });
 
   const trigger = header.getByRole('button', { name: 'Système' });
-  const triggerHost = header.locator('button.information-trigger');
+  const triggerHost = header.locator('button.information-trigger:visible');
   const dialog = header.locator('ha-dialog.information-dialog');
   await expect(trigger).toBeVisible();
   await expect(trigger).toBeEnabled();
@@ -40,10 +40,10 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   await page.locator('#theme').click();
   await expect(trigger).toHaveText('');
   const heading = header.locator('hui-heading-card');
-  const headingBox = (await heading.boundingBox())!;
   const triggerBox = (await triggerHost.boundingBox())!;
-  expect(Math.abs(triggerBox.x - (await header.boundingBox())!.x)).toBeLessThanOrEqual(1);
-  expect(headingBox.x).toBeGreaterThanOrEqual(triggerBox.x + triggerBox.width);
+  const titleBox = (await heading.locator('h2').boundingBox())!;
+  expect(triggerBox.x).toBeGreaterThanOrEqual(titleBox.x + titleBox.width);
+  expect(triggerBox.x).toBeLessThanOrEqual(titleBox.x + titleBox.width + 10);
   expect(triggerBox.x + triggerBox.width).toBeLessThanOrEqual((await header.boundingBox())!.x + (await header.boundingBox())!.width);
   await expect(dialog).toHaveJSProperty('open', false);
   await expect(page.locator('flowio-firmware-panel [data-panel=network]')).toHaveCount(0);
