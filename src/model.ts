@@ -100,7 +100,7 @@ export function normalizeConfig(input: unknown): PoolConfig {
     if (key in raw) throw new Error(`Le champ ${key} est supprimé de la synthèse. Utiliser display ; recréer la configuration.`);
   }
 
-  const title = raw.title ?? 'Supervision & pilotage';
+  const title = raw.title ?? 'Supervision';
   if (typeof title !== 'string') throw new Error('Titre invalide');
   const grid_options = raw.grid_options === undefined ? undefined : configObject(raw.grid_options);
   const d = raw.display === undefined ? {} : configObject(raw.display);

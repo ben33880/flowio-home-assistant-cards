@@ -4,3 +4,4 @@ coverage/
 *.tsbuildinfo
 playwright-report/
 test-results/
+.tsupgrader/

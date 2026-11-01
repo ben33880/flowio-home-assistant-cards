@@ -7,10 +7,15 @@
 - Actions de remplissage pH/désinfectant placées en icônes à infobulle à côté des jauges de cuves correspondantes.
 - Remises à zéro des durées de filtration, pH et désinfection placées sous leurs compteurs dans « Horaires & durées » ; leur durée est ajoutée à l’affichage si nécessaire.
 - Toutes les options des paramètres de chaque carte sont sélectionnées par défaut ; l’utilisateur peut décocher les éléments inutiles.
-- Choix exclusif du traitement affiché sur ORP : Désactivé, Électrolyseur, Chlore/Brome ou Oxygène actif (Chlore/Brome par défaut) ; la sélection seule ne commande pas le firmware.
-- Switch autonome Électrolyseur retiré des équipements ; « Pompe désinfectant » pilote l’électrolyseur lorsque ce traitement est sélectionné.
-- Libellé de la mesure dans « Qualité de l’eau » fixé à « ORP », indépendamment du traitement affiché dans l’en-tête.
-- En mode électrolyse, l’action de remise à zéro de la durée désinfection cible le compteur de l’électrolyseur ; l’action de remplissage désinfectant est masquée.
+- Pourcentage des cuves agrandi ; volume restant et action de remplissage alignés au pied des jauges.
+- Forçage temporaire placé dans la section Filtration de « Horaires & durées », avec un bouton harmonisé.
+- Les nouvelles cartes occupent toute la largeur d’une vue Sections par défaut.
+- Titre par défaut raccourci à « Supervision » ; bouton Système redessiné plus discret et fiabilisé pour le toucher sur mobile.
+- Type de traitement déduit de `select.<préfixe>_pl_modes_dis`, sans réglage manuel redondant ; les modes, les équipements, les injections et les actions suivent le mode firmware actif.
+- Routage distinct des commandes électrolyseur et désinfection chimique. En mode inconnu ou désactivé, les commandes dépendantes du traitement sont indisponibles. L’ancien `display.treatment` est accepté mais ignoré.
+- Switch autonome Électrolyseur retiré des équipements ; « Pompe désinfectant » pilote l’électrolyseur en mode « Electrolyse », la pompe désinfectant pour « Chlore/Brome » ou « Oxygène actif ».
+- Libellé de la mesure dans « Qualité de l’eau » fixé à « ORP », indépendamment du traitement actif.
+- En mode électrolyse, la remise à zéro désinfection cible le compteur électrolyseur ; remplissage et estimation d’injection désinfectant masqués.
 - Détails : [notes de release 0.3.3](docs/releases/v0.3.3.md).
 
 ## 0.3.2 — construite

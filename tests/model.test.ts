@@ -1,7 +1,7 @@
 import { expect,it } from 'vitest';
 import { DISPLAY_OPTIONS,normalizeConfig,idFor,expectedRoles,expectedBindings,canCommand,entityStatus,tankPercent,type Hass } from '../src/model';
 const hass=(states:Record<string,string>):Hass=>({states:Object.fromEntries(Object.entries(states).map(([id,state])=>[id,{state,attributes:{}}])),callService:async()=>undefined});
-it('utilise le titre configuré et définit Supervision & pilotage par défaut',()=>{expect(normalizeConfig({}).title).toBe('Supervision & pilotage');expect(normalizeConfig({title:'Piscine'}).title).toBe('Piscine');});
+it('utilise le titre configuré et définit Supervision par défaut',()=>{expect(normalizeConfig({}).title).toBe('Supervision');expect(normalizeConfig({title:'Piscine'}).title).toBe('Piscine');});
 it('préserve les options de grille Home Assistant',()=>{expect(normalizeConfig({grid_options:{columns:'full'}}).grid_options).toEqual({columns:'full'});});
 it('sélectionne par défaut toutes les options disponibles et retire l’équipement électrolyseur autonome',()=>{const{display}=normalizeConfig({});for(const group of Object.keys(DISPLAY_OPTIONS)as Array<keyof typeof DISPLAY_OPTIONS>)expect(display[group]).toEqual(DISPLAY_OPTIONS[group]);expect(DISPLAY_OPTIONS.equipment).not.toContain('electrolyzer');expect(normalizeConfig({display:{equipment:['disinfection_pump','electrolyzer']}}).display.equipment).toEqual(['disinfection_pump']);});
 it('ignore le traitement manuel obsolète et déduit le mode depuis le firmware',()=>{expect('treatment'in normalizeConfig({}).display).toBe(false);expect('treatment'in normalizeConfig({display:{treatment:'electrolyzer'}}).display).toBe(false);});

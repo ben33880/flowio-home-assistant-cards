@@ -27,7 +27,7 @@ Ressource attendue : `/hacsfiles/flowio-home-assistant-cards/flowio-home-assista
 
 ```yaml
 type: custom:flowio-pool-card
-title: Supervision & pilotage
+title: Supervision
 entity_prefix: fio
 grid_options:
   columns: full
@@ -59,6 +59,8 @@ Le préfixe vaut `fio` par défaut : `piscine` construit `sensor.piscine_io_ph`.
 
 Les anciens champs `entities`, `features`, `show_tanks`, `treatment` et `measurements` au premier niveau de la synthèse sont rejetés. Recréer les anciennes configurations avec `display`. Pour les historiques, `measurements` reste au premier niveau.
 
+Pour compatibilité, l’ancien champ `display.treatment` n’empêche pas le chargement d’une carte, mais n’a plus d’effet ; le mode actif vient de `select.<préfixe>_pl_modes_dis`.
+
 ## Historiques
 
 ```yaml
@@ -74,7 +76,7 @@ Le Recorder doit fournir les historiques des entités choisies. Les valeurs calc
 ## Commandes et limites
 
 - Consulter une valeur ouvre les informations de l'entité ; changer un contrôle peut commander la piscine.
-- Si `network` ou `system` est sélectionné dans `display.information`, une icône native Home Assistant « Système » apparaît immédiatement après le titre « Supervision & pilotage ». Le dialogue présente les informations réseau et système ; la ligne « Signal Wi-Fi » apparaît uniquement si sa valeur est disponible. Les icônes proviennent des entités Home Assistant ; tension (V) et courant (A) proviennent du slot `device_slot`.
+- Si `network` ou `system` est sélectionné dans `display.information`, une icône discrète « Système » apparaît près du titre « Supervision ». Son bouton est utilisable au toucher sur mobile. Le dialogue présente les informations réseau et système ; la ligne « Signal Wi-Fi » apparaît uniquement si sa valeur est disponible. Les icônes proviennent des entités Home Assistant ; tension (V) et courant (A) proviennent du slot `device_slot`.
 - Les actions de remplissage sélectionnées apparaissent sous forme d’icônes avec infobulle à côté des jauges des cuves pH et désinfectant. Les remises à zéro sélectionnées pour filtration, pH et désinfection apparaissent sous leur durée correspondante dans « Horaires & durées ». Une durée est affichée automatiquement si son action de remise à zéro est sélectionnée. Les actions gardent leur confirmation et sont omises du panneau général lorsqu’elles sont placées auprès de leur valeur.
 - Les autres boutons s’affichent uniquement lorsqu’ils sont sélectionnés. Le forçage temporaire s’ouvre dans une boîte de dialogue Home Assistant avec le formulaire et les commandes disponibles du firmware ; sa sélection est globale et partagée entre utilisateurs.
 - La pression est affichée et historisée sans conversion, telle que fournie par l’entité firmware. Son échelle visuelle par défaut est numérique (0,15–1,8), sans hypothèse d’unité ni zone de qualité.

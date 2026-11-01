@@ -2,7 +2,7 @@
 
 La carte principale utilise entity_prefix et display. L'utilisateur sélectionne ses mesures, consignes, équipements, valeurs de cuve et informations ; le mode firmware actif détermine les modes et commandes adaptés au traitement.
 
-Le titre d'entête vient du champ `title`, utilisé tel quel ; sa valeur par défaut est `Supervision & pilotage`. Par défaut, toutes les options de chaque groupe sont cochées dans les paramètres, y compris les actions. Retirer les choix qui ne sont pas utiles à l'installation. La carte d'historiques sélectionne également toutes les mesures et valeurs calculées par défaut.
+Le titre d'entête vient du champ `title`, utilisé tel quel ; sa valeur par défaut est `Supervision`. Par défaut, toutes les options de chaque groupe sont cochées dans les paramètres, y compris les actions. Retirer les choix qui ne sont pas utiles à l'installation. La carte d'historiques sélectionne également toutes les mesures et valeurs calculées par défaut.
 
 ## Options
 
@@ -37,7 +37,7 @@ Les mesures calculées utilisent `sensor.<préfixe>_io_value_v00` à `v04`; leur
 
 Les métriques équipement utilisent `sensor.<préfixe>_data_<176 + 32 × device_slot + metric_id>`, conformément au catalogue firmware. Les mesures disponibles comprennent `water_in`, `water_out`, `compressor_in`, `compressor_out`, `ambient`, `coil`, `voltage`, `current` et d’autres métriques numériques. Le slot est physique, pas le rôle de la piscine : vérifier la liaison dans le firmware.
 
-`network` et `system` affichent les informations réseau (adresse IP et MAC) et système (uptime, mémoire libre/minimale et fragmentation) dans une fenêtre dédiée. « Signal Wi-Fi » apparaît uniquement si l’entité fournit une valeur disponible ; il n’est pas supposé exister, notamment en connexion Ethernet. Les lignes reprennent les icônes `icon` fournies par les entités du firmware dans Home Assistant. Le groupe `system` comprend aussi la tension (V) et le courant (A) du slot défini par `device_slot`, même si ces métriques ne sont pas cochées dans `display.device_metrics`. Une icône native Home Assistant apparaît juste après l’en-tête « Supervision & pilotage » si au moins un de ces groupes est sélectionné ; son infobulle et son libellé accessible sont « Système ». Les listes choisies restent ajoutées au diagnostic des entités ; les valeurs absentes sont explicites, jamais remplacées par zéro.
+`network` et `system` affichent les informations réseau (adresse IP et MAC) et système (uptime, mémoire libre/minimale et fragmentation) dans une fenêtre dédiée. « Signal Wi-Fi » apparaît uniquement si l’entité fournit une valeur disponible ; il n’est pas supposé exister, notamment en connexion Ethernet. Les lignes reprennent les icônes `icon` fournies par les entités du firmware dans Home Assistant. Le groupe `system` comprend aussi la tension (V) et le courant du slot défini par `device_slot`, même si ces métriques ne sont pas cochées dans `display.device_metrics`. Un petit bouton natif accessible au toucher apparaît près du titre « Supervision » si au moins un de ces groupes est sélectionné. Les listes choisies restent ajoutées au diagnostic des entités ; les valeurs absentes sont explicites, jamais remplacées par zéro.
 
 ## Rupture de configuration
 

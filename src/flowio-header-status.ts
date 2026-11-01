@@ -4,7 +4,7 @@ import{systemBindings}from'./firmware-model';
 type NativeCard=HTMLElement&{hass?:Hass;setConfig:(config:Record<string,unknown>)=>void};type CardHelpers={createCardElement:(config:Record<string,unknown>)=>NativeCard};
 class FlowioHeaderStatus extends LitElement{
 static properties={hass:{attribute:false},prefix:{type:String},deviceSlot:{type:Number},heading:{type:String},information:{attribute:false},pending:{state:true},message:{state:true},opened:{state:true},informationOpened:{state:true},nativeCard:{state:true},loadError:{state:true},ready:{state:true}};
-declare hass?:Hass;prefix='';deviceSlot=0;heading='Supervision & pilotage';information:readonly string[]=[];private pending='';private message='';private opened=false;private informationOpened=false;private timer?:ReturnType<typeof setTimeout>;private generation=0;private nativeCard?:NativeCard;private nativeBadgeObserver?:MutationObserver;private loadError='';private loading=false;private nativeGeneration=0;private nativeConfig='';private ready=false;private uiGeneration=0;private failed=false;private desktopBadgeQuery?:MediaQueryList;private onDesktopBadgeQueryChange=()=>this.syncNative();
+declare hass?:Hass;prefix='';deviceSlot=0;heading='Supervision';information:readonly string[]=[];private pending='';private message='';private opened=false;private informationOpened=false;private timer?:ReturnType<typeof setTimeout>;private generation=0;private nativeCard?:NativeCard;private nativeBadgeObserver?:MutationObserver;private loadError='';private loading=false;private nativeGeneration=0;private nativeConfig='';private ready=false;private uiGeneration=0;private failed=false;private desktopBadgeQuery?:MediaQueryList;private onDesktopBadgeQueryChange=()=>this.syncNative();
 private stem(){return this.prefix?this.prefix+'_':'';}private state(domain:string,suffix:string){return this.hass?.states[`${domain}.${this.stem()}${suffix}`];}
 private alarms(){const start=`binary_sensor.${this.stem()}alm_`;return Object.entries(this.hass?.states??{}).flatMap(([entityId,s])=>{if(!entityId.startsWith(start)||!entityId.endsWith('_active')||s.state!=='on')return[];const id=entityId.slice(start.length,-7);if(!/^[0-9]+$/.test(id))return[];return[{id,entityId,title:typeof s.attributes.friendly_name==='string'?s.attributes.friendly_name:`Alarme #${id}`,resetEntity:`button.${this.stem()}alm_${id}_reset`}];}).sort((a,b)=>Number(a.id)-Number(b.id));}
 private canReset(entityId:string){const s=this.hass?.states[entityId];return!!s&&s.state!=='unavailable';}
@@ -24,23 +24,22 @@ private decorateInformationTrigger(){
  if(!style){
   style=document.createElement('style');
   style.dataset.flowioInformation='';
-  style.textContent='h2+.information-trigger{--ha-button-height:40px;box-sizing:border-box;display:inline-flex;flex:0 0 40px;width:40px;min-width:40px;height:40px;min-height:40px;padding:0;vertical-align:middle;color:var(--secondary-text-color);animation:none!important;transition:none!important}h2+.information-trigger::part(base){box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:40px;min-width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;background:transparent;color:inherit;animation:none!important;transition:none!important}h2+.information-trigger:not([disabled]):hover::part(base){background:color-mix(in srgb,var(--primary-color) 10%,transparent);color:var(--primary-color)}h2+.information-trigger:focus-within{outline:2px solid var(--primary-color);outline-offset:1px;border-radius:50%}h2+.information-trigger[disabled]{opacity:.55}.information-icon{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px}.information-icon ha-icon{--mdc-icon-size:20px}';
+  style.textContent='h2+.information-trigger{box-sizing:border-box;display:inline-flex;flex:0 0 36px;align-items:center;justify-content:center;width:36px;min-width:36px;height:36px;min-height:36px;margin-inline-start:2px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--secondary-text-color);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;vertical-align:middle;animation:none!important;transition:background-color .15s ease,color .15s ease}h2+.information-trigger ha-icon{--mdc-icon-size:18px;display:block;pointer-events:none}h2+.information-trigger:not(:disabled):hover{background:color-mix(in srgb,var(--primary-color) 10%,transparent);color:var(--primary-color)}h2+.information-trigger:focus-visible{outline:2px solid var(--primary-color);outline-offset:1px}h2+.information-trigger:disabled{opacity:.55;cursor:default}@media(prefers-reduced-motion:reduce){h2+.information-trigger{transition:none}}';
   root.append(style);
  }
- const existing=root.querySelector<HTMLElement>('ha-button.information-trigger');
+ const existing=root.querySelector<HTMLButtonElement>('button.information-trigger');
  const wanted=this.information.some(group=>group==='network'||group==='system');
  if(!wanted){existing?.remove();return;}
  const title=root.querySelector('h2');
  if(!title?.parentElement)return;
- const button=existing??document.createElement('ha-button');
+ const button=existing??document.createElement('button');
  button.className='information-trigger';
- button.setAttribute('appearance','plain');
+ button.type='button';
  button.setAttribute('title','Système');
  button.setAttribute('aria-label','Système');
- button.toggleAttribute('disabled',!this.ready);
- (button as HTMLElement&{accessibleLabel?:string}).accessibleLabel='Système';
+ button.disabled=!this.ready;
  if(!existing){
-  button.innerHTML='<span class="information-icon"><ha-icon icon="mdi:information-outline" aria-hidden="true"></ha-icon></span>';
+  button.innerHTML='<ha-icon icon="mdi:information-outline" aria-hidden="true"></ha-icon>';
   button.addEventListener('click',()=>this.openInformation());
  }
  if(button.previousElementSibling!==title)title.after(button);
