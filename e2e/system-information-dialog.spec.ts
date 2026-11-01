@@ -22,18 +22,18 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   });
 
   const trigger = header.getByRole('button', { name: 'Système' });
-  const triggerHost = header.locator('ha-button.information-trigger');
+  const triggerHost = header.locator('button.information-trigger');
   const dialog = header.locator('ha-dialog.information-dialog');
   await expect(trigger).toBeVisible();
   await expect(trigger).toBeEnabled();
-  await expect(header.locator('ha-button.information-trigger')).toHaveAttribute('title', 'Système');
-  const icon = header.locator('.information-icon ha-icon');
+  await expect(triggerHost).toHaveAttribute('title', 'Système');
+  const icon = triggerHost.locator('ha-icon');
   await expect(icon).toHaveAttribute('icon', 'mdi:information-outline');
-  await expect(triggerHost).toHaveCSS('width', '40px');
-  await expect(triggerHost).toHaveCSS('height', '40px');
-  await expect(icon).toHaveCSS('--mdc-icon-size', '20px');
+  await expect(triggerHost).toHaveCSS('width', '36px');
+  await expect(triggerHost).toHaveCSS('height', '36px');
+  await expect(icon).toHaveCSS('--mdc-icon-size', '18px');
   await expect(triggerHost).toHaveCSS('animation-name', 'none');
-  await expect(triggerHost).toHaveCSS('transition-property', 'none');
+  await expect(triggerHost).toHaveCSS('transition-property', 'background-color, color');
   const lightColor = await triggerHost.evaluate(element => getComputedStyle(element).color);
   await page.locator('#theme').click();
   await expect.poll(() => triggerHost.evaluate(element => getComputedStyle(element).color)).not.toBe(lightColor);
@@ -43,7 +43,7 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   const headingBox = (await heading.locator('h2').boundingBox())!;
   const triggerBox = (await triggerHost.boundingBox())!;
   expect(triggerBox.x).toBeGreaterThanOrEqual(headingBox.x + headingBox.width - 1);
-  expect(triggerBox.x).toBeLessThan(headingBox.x + headingBox.width + 10);
+  expect(triggerBox.x).toBeLessThanOrEqual(headingBox.x + headingBox.width + 10);
   expect(triggerBox.x + triggerBox.width).toBeLessThan((await heading.boundingBox())!.x + (await heading.boundingBox())!.width - 20);
   await expect(dialog).toHaveJSProperty('open', false);
   await expect(page.locator('flowio-firmware-panel [data-panel=network]')).toHaveCount(0);
