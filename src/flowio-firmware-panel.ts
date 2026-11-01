@@ -119,17 +119,18 @@ class FlowioFirmwarePanel extends LitElement {
     }
   }
 
-  async runOperation(operation: Operation) {
-    if (!this.operations.includes(operation) || this.busy) return;
+  async runOperation(operation: Operation, stillAllowed: () => boolean = () => true) {
+    if (!this.operations.includes(operation) || !stillAllowed() || this.busy) return;
     const definition = OPERATION_DEFINITIONS[operation];
     const entityId = operationEntityId(this.prefix, operation);
     if (!this.actionAvailable(entityId)) return;
     if (!window.confirm(`${definition.confirm} Flow.io conserve la responsabilité des sécurités.`)) return;
+    if (!this.operations.includes(operation) || !stillAllowed()) return;
     await this.invoke('button', 'press', entityId);
   }
 
-  private openOverride() {
-    if (!this.ready) return;
+  openOverride() {
+    if (!this.ready) return false;
     const ids = overrideEntityIds(this.prefix);
     const selected = this.hass?.states[ids.target]?.state ?? '';
     const duration = Number(this.hass?.states[ids.duration]?.state);
@@ -138,6 +139,7 @@ class FlowioFirmwarePanel extends LitElement {
     this.overrideConfirmation = undefined;
     this.error = '';
     this.overrideOpened = true;
+    return true;
   }
 
   private closeOverride() {
@@ -229,14 +231,6 @@ class FlowioFirmwarePanel extends LitElement {
             <small>${!state ? 'Entité absente' : !available(state) ? 'Indisponible' : 'Confirmer avant exécution'}</small></button>`;
         })}</div>` : nothing}
         ${showOverride ? html`
-          <ha-button class="override-trigger" data-open-override appearance="outlined"
-            aria-haspopup="dialog" aria-expanded=${this.overrideOpened ? 'true' : 'false'}
-            .disabled=${!this.ready} .accessibleLabel=${'Ouvrir le forçage temporaire'}
-            @click=${() => this.openOverride()}>
-            <ha-icon slot="start" icon="mdi:timer-cog-outline" aria-hidden="true"></ha-icon>
-            Forçage temporaire
-            <span class="override-trigger-state">${forced ? 'Actif' : 'Pilotage guidé'}</span>
-          </ha-button>
           <ha-dialog class="override-dialog" data-panel="timed-override"
             .open=${this.overrideOpened && this.ready}
             .headerTitle=${'Forçage temporaire'}
@@ -350,10 +344,6 @@ class FlowioFirmwarePanel extends LitElement {
     button:disabled{opacity:.55;cursor:not-allowed}.value-tile{display:flex;flex-direction:column;gap:4px;cursor:pointer;min-width:0}
     .value-tile span{font-size:.68rem;color:var(--secondary-text-color)}.value-tile strong{font-size:.85rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
     .value-tile small{font-size:.7rem;font-weight:400;color:var(--secondary-text-color)}
-    .override-trigger{--ha-button-height:42px;display:flex;width:max-content;max-width:100%;justify-content:flex-start;margin:0;color:var(--primary-text-color)}
-    .override-trigger::part(base){box-sizing:border-box;display:flex;justify-content:flex-start;gap:9px;max-width:100%;padding-inline:12px;border:1px solid var(--divider-color);border-radius:12px;background:var(--secondary-background-color);color:inherit;font:inherit;font-size:.78rem;font-weight:600}
-    .override-trigger ha-icon{--mdc-icon-size:19px;color:var(--fio-water,var(--primary-color))}
-    .override-trigger-state{margin-inline-start:auto;font-size:.68rem;font-weight:500;color:var(--secondary-text-color)}
     .override-content{display:grid;gap:14px;min-width:min(360px,calc(100vw - 64px));max-width:520px;padding-block:4px}
     .override-intro,.override-state{margin:0;font-size:.76rem;line-height:1.45}
     .override-state{padding:10px 12px;border:1px solid var(--divider-color);border-radius:11px;background:var(--secondary-background-color);font-weight:600}

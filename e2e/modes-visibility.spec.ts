@@ -7,7 +7,7 @@ test('modes liés aux équipements affichés, choix conservés et aucun appel de
     const demo = (window as any).demo;
     demo.config.display.modes = ['filtration_auto', 'winter', 'ph_auto', 'disinfection_auto', 'heater_auto', 'disinfection_type', 'swg_control', 'ph_dose_plus', 'o2_temp_comp'];
     demo.config.display.equipment = ['filtration', 'ph_pump', 'disinfection_pump'];
-    demo.config.display.treatment = 'chlorine_bromine';
+    demo.hass.states['select.fio_pl_modes_dis'].state = 'Chlore/Brome';
     demo.apply();
   });
 
@@ -18,21 +18,21 @@ test('modes liés aux équipements affichés, choix conservés et aucun appel de
   await modes.getByRole('button', { name: 'Stratégie de traitement', exact: true }).click();
   await expect(modes.locator('[data-mode=disinfection_type]')).toBeVisible();
   await expect(modes.locator('[data-mode=ph_dose_plus]')).toBeVisible();
-  await expect(modes.locator('[data-mode=o2_temp_comp]')).toBeVisible();
+  await expect(modes.locator('[data-mode=o2_temp_comp]')).toHaveCount(0);
   await page.keyboard.press('Escape');
   const saved = await page.evaluate(() => (window as any).demo.config.display.modes);
 
   await page.evaluate(() => {
     const demo = (window as any).demo;
     demo.config.display.equipment = ['disinfection_pump'];
-    demo.config.display.treatment = 'electrolyzer';
+    demo.hass.states['select.fio_pl_modes_dis'].state = 'Electrolyse';
     demo.apply();
   });
   await expect(modes.locator('.mode-list .mode-row')).toHaveCount(1);
   await modes.getByRole('button', { name: 'Stratégie de traitement', exact: true }).click();
   await expect(modes.locator('[data-mode=swg_control]')).toBeVisible();
   await expect(modes.locator('[data-mode=ph_dose_plus]')).toHaveCount(0);
-  await expect(modes.locator('[data-mode=o2_temp_comp]')).toBeVisible();
+  await expect(modes.locator('[data-mode=o2_temp_comp]')).toHaveCount(0);
   await page.keyboard.press('Escape');
 
   await page.evaluate(() => {

@@ -46,13 +46,35 @@ it('expose uniquement les opérations sélectionnées et vérifie les slots', ()
   expect(() => normalizeConfig({ display: { device_metrics: ['unknown'] } })).toThrow();
 });
 
-it('redirige les actions désinfection vers les actions électrolyse en mode électrolyse', () => {
+it('redirige les actions désinfection vers les actions électrolyse selon le sélecteur firmware', () => {
   const bindings = expectedBindings(normalizeConfig({
-    display: { treatment: 'electrolyzer', operations: ['refill_disinfection', 'reset_disinfection'] }
-  })).map(binding => binding.id);
+    display: { operations: ['refill_disinfection', 'reset_disinfection'] }
+  }), { states: { 'select.fio_pl_modes_dis': { state: 'Electrolyse', attributes: {} } }, callService: async () => undefined }).map(binding => binding.id);
   expect(bindings).toContain('button.fio_pd_reset_upt_chl_gen');
   expect(bindings).not.toContain('button.fio_pd_reset_upt_chl');
   expect(bindings).not.toContain('button.fio_pd_refill_chl');
+});
+
+it('n’inclut pas les actions de désinfection si le mode firmware est inconnu', () => {
+  const bindings = expectedBindings(normalizeConfig({
+    display: { operations: ['refill_disinfection', 'reset_disinfection'] }
+  })).map(binding => binding.id);
+  expect(bindings).toContain('select.fio_pl_modes_dis');
+  expect(bindings).not.toContain('button.fio_pd_reset_upt_chl');
+  expect(bindings).not.toContain('button.fio_pd_refill_chl');
+});
+
+it('garde les actions chimiques pour le chlore/brome et l’oxygène actif', () => {
+  const config = normalizeConfig({ display: { operations: ['refill_disinfection', 'reset_disinfection'] } });
+  for (const treatment of ['Chlore/Brome', 'Oxygène actif']) {
+    const bindings = expectedBindings(config, {
+      states: { 'select.fio_pl_modes_dis': { state: treatment, attributes: {} } },
+      callService: async () => undefined
+    }).map(binding => binding.id);
+    expect(bindings).toContain('button.fio_pd_reset_upt_chl');
+    expect(bindings).toContain('button.fio_pd_refill_chl');
+    expect(bindings).not.toContain('button.fio_pd_reset_upt_chl_gen');
+  }
 });
 
 it('ne propose les cibles de forçage que si le sélecteur firmware les annonce', () => {

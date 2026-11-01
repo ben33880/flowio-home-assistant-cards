@@ -111,9 +111,9 @@ test('en mode électrolyse, la remise à zéro désinfection cible le compteur �
     demo.hass.states['button.fio_pd_reset_upt_chl_gen'] = { state: 'unknown', attributes: {} };
     demo.hass.states['button.fio_pd_reset_upt_chl'] = { state: 'unknown', attributes: {} };
     demo.hass.states['button.fio_pd_refill_chl'] = { state: 'unknown', attributes: {} };
+    demo.hass.states['select.fio_pl_modes_dis'].state = 'Electrolyse';
     demo.config.display = {
       ...demo.config.display,
-      treatment: 'electrolyzer',
       tanks: ['disinfection_tank_percent'],
       timing: [],
       operations: ['refill_disinfection', 'reset_disinfection']

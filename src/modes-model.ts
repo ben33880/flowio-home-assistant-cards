@@ -5,6 +5,7 @@ export const MODE_ITEMS = [
   'disinfection_type', 'swg_control', 'ph_dose_plus', 'o2_temp_comp'
 ] as const;
 export type Mode = typeof MODE_ITEMS[number];
+export type Treatment = 'disabled' | 'electrolyzer' | 'chlorine_bromine' | 'oxygen';
 
 interface Definition {
   domain: 'switch' | 'select';
@@ -28,11 +29,27 @@ export const MODES: Record<Mode, Definition> = {
   o2_temp_comp: { domain: 'switch', suffix: 'pl_o2_temp_comp', label: 'Compensation température O₂', icon: 'mdi:thermometer', equipment: ['disinfection_pump'], advanced: true }
 };
 
-export function visibleModes(selected: readonly Mode[], equipment: readonly string[], treatment?: string): Mode[] {
-  return selected.filter(mode =>
-    (mode !== 'swg_control' || treatment === 'electrolyzer') &&
-    MODES[mode].equipment.some(role => equipment.includes(role))
-  );
+export function treatmentFromFirmware(hass: Hass | undefined, prefix: string): Treatment | undefined {
+  const value = hass?.states[modeId(prefix, 'disinfection_type')]?.state;
+  switch (value) {
+    case 'Désactivé': return 'disabled';
+    case 'Electrolyse': return 'electrolyzer';
+    case 'Chlore/Brome': return 'chlorine_bromine';
+    case 'Oxygène actif': return 'oxygen';
+    default: return undefined;
+  }
+}
+
+export function visibleModes(selected: readonly Mode[], equipment: readonly string[], treatment?: Treatment): Mode[] {
+  return selected.filter(mode => {
+    if (!MODES[mode].equipment.some(role => equipment.includes(role))) return false;
+    if (mode === 'disinfection_type') return true;
+    if (['disinfection_auto', 'swg_control', 'o2_temp_comp'].includes(mode) &&
+        (!treatment || treatment === 'disabled')) return false;
+    if (mode === 'swg_control' && treatment !== 'electrolyzer') return false;
+    if (mode === 'o2_temp_comp' && treatment !== 'oxygen') return false;
+    return true;
+  });
 }
 
 export function modeId(prefix: string, mode: Mode) {

@@ -29,6 +29,8 @@ Ressource attendue : `/hacsfiles/flowio-home-assistant-cards/flowio-home-assista
 type: custom:flowio-pool-card
 title: Supervision & pilotage
 entity_prefix: fio
+grid_options:
+  columns: full
 display:
   measurements: [ph, orp, pressure, water_temperature, air_temperature]
   setpoints: [ph_setpoint, orp_setpoint]
@@ -49,7 +51,9 @@ runtime_slots:
   disinfection: 2
 ```
 
-Toutes les options disponibles sont cochées par défaut dans les paramètres des deux cartes ; retirer celles qui ne sont pas utiles. La mesure dans « Qualité de l’eau » conserve le libellé ORP. Le traitement sélectionné (Désactivé, Électrolyseur, Chlore/Brome ou Oxygène actif) s’affiche dans le badge d’en-tête et, seul, n’envoie pas de commande. Le switch « Pompe désinfectant » pilote l’électrolyseur lorsque le traitement « Électrolyseur » est sélectionné. Le switch autonome de l’électrolyseur n’est plus affiché. Une liste vide masque le groupe. Les modes sont filtrés selon les équipements cochés et le traitement, sans effacer la sélection `display.modes`.
+Toutes les options disponibles sont cochées par défaut dans les paramètres des deux cartes ; retirer celles qui ne sont pas utiles. La mesure dans « Qualité de l’eau » conserve le libellé ORP. Le traitement actif est déduit de l’entité firmware « Type de désinfection » ; le choix « Commande · type de désinfection » permet de le modifier. Le switch « Pompe désinfectant » pilote l’électrolyseur en mode électrolyse, ou la pompe désinfectant pour le chlore/brome et l’oxygène actif. En mode inconnu ou désactivé, les commandes dépendantes du traitement sont indisponibles. Le switch autonome de l’électrolyseur n’est plus affiché. Une liste vide masque le groupe. Les modes sont filtrés selon les équipements cochés et le mode firmware actif, sans effacer la sélection `display.modes`.
+
+Dans une vue Sections, `grid_options: { columns: full }` fait occuper à la carte toute la largeur de sa section par défaut lors de son ajout.
 
 Le préfixe vaut `fio` par défaut : `piscine` construit `sensor.piscine_io_ph`. Un préfixe vide est accepté. Les noms métier du firmware sont conservés ; aucun choix automatique d'une entité suffixée `_2`.
 
