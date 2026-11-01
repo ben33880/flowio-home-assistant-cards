@@ -1,7 +1,7 @@
 import { MEASUREMENTS,type Measurement } from './entities';
 export type VisualType='tile'|'arc'|'needle';export interface Scale{type:VisualType;min:number;max:number;}export type Visuals=Record<Measurement,Scale>;
-const DEFAULTS:Visuals={water_temperature:{type:'tile',min:0,max:40},air_temperature:{type:'tile',min:-10,max:50},ph:{type:'arc',min:6,max:8.4},orp:{type:'arc',min:400,max:1000},pressure:{type:'needle',min:0,max:19}};
-const LEGACY_MAX:Partial<Record<Measurement,number>>={ph:14,orp:1000,pressure:3};
+const DEFAULTS:Visuals={water_temperature:{type:'tile',min:0,max:40},air_temperature:{type:'tile',min:-10,max:50},ph:{type:'arc',min:6,max:8.4},orp:{type:'arc',min:400,max:1000},pressure:{type:'needle',min:0.15,max:1.8}};
+const LEGACY_MAX:Partial<Record<Measurement,number[]>>={ph:[14],orp:[1000],pressure:[3,19]};
 export function normalizeVisuals(input:unknown):Visuals{
 if(input!==undefined&&(!input||typeof input!=='object'||Array.isArray(input)))throw new Error('visuals doit être un objet');
 const raw=(input??{}) as Record<string,unknown>,result={} as Visuals;
@@ -11,7 +11,7 @@ const value=raw[role];if(value!==undefined&&(!value||typeof value!=='object'||Ar
 const v=(value??{}) as Record<string,unknown>,d=DEFAULTS[role],type=v.type??d.type,min=v.min??d.min,max=v.max??d.max;
 if(typeof type!=='string'||!['tile','arc','needle'].includes(type)||typeof min!=='number'||typeof max!=='number'||![min,max,max-min].every(Number.isFinite)||max<=min)throw new Error('Échelle finie attendue avec max supérieur à min');
 const scale:Scale={type:type as VisualType,min,max};
-if(scale.min===0&&LEGACY_MAX[role]!==undefined&&scale.max===LEGACY_MAX[role]){scale.min=d.min;scale.max=d.max;}
+if(scale.min===0&&LEGACY_MAX[role]?.includes(scale.max)){scale.min=d.min;scale.max=d.max;}
 result[role]=scale;
 }return result;
 }

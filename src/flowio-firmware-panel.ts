@@ -1,4 +1,4 @@
-import { LitElement, css, html, nothing } from 'lit';
+import { LitElement, css, html, nothing, type PropertyValues } from 'lit';
 import { available, type Hass } from './model';
 import {
   DEVICE_METRIC_DEFINITIONS,
@@ -13,6 +13,7 @@ import {
   type DeviceMetric,
   type Operation
 } from './firmware-model';
+import { ensureHaElements } from './ha-controls';
 
 class FlowioFirmwarePanel extends LitElement {
   static properties = {
@@ -25,7 +26,11 @@ class FlowioFirmwarePanel extends LitElement {
     inlineOperations: { attribute: false },
     busy: { state: true },
     error: { state: true },
-    overrideDuration: { state: true }
+    overrideDuration: { state: true },
+    overrideTarget: { state: true },
+    overrideOpened: { state: true },
+    overrideConfirmation: { state: true },
+    ready: { state: true }
   };
 
   declare hass?: Hass;
@@ -38,6 +43,43 @@ class FlowioFirmwarePanel extends LitElement {
   private busy = '';
   private error = '';
   private overrideDuration?: number;
+  private overrideTarget = '';
+  private overrideOpened = false;
+  private overrideConfirmation?: 'on' | 'off' | 'release';
+  private ready = false;
+  private uiGeneration = 0;
+
+  connectedCallback() {
+    super.connectedCallback();
+    const token = ++this.uiGeneration;
+    void ensureHaElements(['ha-dialog', 'ha-button', 'ha-form', 'ha-alert'])
+      .then(() => {
+        if (this.isConnected && token === this.uiGeneration) this.ready = true;
+      })
+      .catch(error => {
+        console.error('[flowio] Contrôles natifs indisponibles pour le panneau firmware', error);
+        if (this.isConnected && token === this.uiGeneration) {
+          this.error = 'Composants natifs Home Assistant indisponibles. Recharger le tableau de bord.';
+        }
+      });
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this.uiGeneration++;
+    this.ready = false;
+    this.overrideOpened = false;
+  }
+
+  protected willUpdate(changed: PropertyValues) {
+    if (changed.has('prefix')) {
+      this.overrideOpened = false;
+      this.overrideTarget = '';
+      this.overrideDuration = undefined;
+      this.overrideConfirmation = undefined;
+      this.error = '';
+    }
+  }
 
   private isActionPanelOperation(operation: Operation) {
     return !operation.startsWith('reset_')
@@ -62,14 +104,16 @@ class FlowioFirmwarePanel extends LitElement {
 
   private async invoke(domain: string, service: string, entityId: string, data: Record<string, unknown> = {}) {
     const hass = this.hass;
-    if (!hass || !this.actionAvailable(entityId) || this.busy) return;
+    if (!hass || !this.actionAvailable(entityId) || this.busy) return false;
     this.busy = entityId;
     this.error = '';
     try {
       await hass.callService(domain, service, { ...data, entity_id: entityId });
+      return true;
     } catch (error) {
       console.error('[flowio] Action firmware impossible', error);
       this.error = `Action refusée ou échouée pour ${entityId}. Vérifier les droits et la disponibilité du contrôleur.`;
+      return false;
     } finally {
       this.busy = '';
     }
@@ -84,43 +128,81 @@ class FlowioFirmwarePanel extends LitElement {
     await this.invoke('button', 'press', entityId);
   }
 
-  private async setTarget(event: Event) {
-    const entityId = overrideEntityIds(this.prefix).target;
-    const target = (event.currentTarget as HTMLSelectElement).value;
-    if (!canSelectOverride(this.hass, this.prefix, target)) return;
-    await this.invoke('select', 'select_option', entityId, { option: target });
-  }
-
-  private async setDuration(event: Event) {
-    const value = Number((event.currentTarget as HTMLInputElement).value);
-    if (!Number.isInteger(value) || value < 1 || value > 1440) {
-      this.error = 'La durée du forçage doit être comprise entre 1 et 1 440 minutes.';
-      return;
-    }
-    this.overrideDuration = value;
-    this.error = '';
-  }
-
-  private async override(action: 'on' | 'off' | 'release') {
+  private openOverride() {
+    if (!this.ready) return;
     const ids = overrideEntityIds(this.prefix);
-    const target = this.hass?.states[ids.target]?.state;
+    const selected = this.hass?.states[ids.target]?.state ?? '';
+    const duration = Number(this.hass?.states[ids.duration]?.state);
+    this.overrideTarget = canSelectOverride(this.hass, this.prefix, selected) ? selected : overrideOptions(this.hass, this.prefix)[0] ?? '';
+    this.overrideDuration = Number.isInteger(duration) && duration >= 1 && duration <= 1440 ? duration : undefined;
+    this.overrideConfirmation = undefined;
+    this.error = '';
+    this.overrideOpened = true;
+  }
+
+  private closeOverride() {
+    this.overrideOpened = false;
+    this.overrideConfirmation = undefined;
+  }
+
+  private requestOverride(action: 'on' | 'off' | 'release') {
+    this.error = '';
+    this.overrideConfirmation = action;
+  }
+
+  private async confirmOverride() {
+    const action = this.overrideConfirmation;
+    if (!action) return;
+    this.overrideConfirmation = undefined;
+    await this.executeOverride(action);
+  }
+
+  private cancelOverride() {
+    this.overrideConfirmation = undefined;
+  }
+
+  private async updateOverrideForm(event: CustomEvent<{ value?: Record<string, unknown> }>) {
+    event.stopPropagation();
+    const values = event.detail?.value;
+    if (!values) return;
+    const form = event.currentTarget as HTMLElement & { data: Record<string, unknown> };
+    form.data = values;
+    const value = Number(values.duration);
+    if (Number.isInteger(value) && value >= 1 && value <= 1440) {
+      if (value !== this.overrideDuration) this.overrideConfirmation = undefined;
+      this.overrideDuration = value;
+      this.error = '';
+    } else {
+      this.error = 'La durée du forçage doit être comprise entre 1 et 1 440 minutes.';
+    }
+    const target = values.target;
+    if (typeof target === 'string' && target !== this.overrideTarget && canSelectOverride(this.hass, this.prefix, target)) {
+      const previous = this.overrideTarget;
+      this.overrideTarget = target;
+      this.overrideConfirmation = undefined;
+      const changed = await this.invoke('select', 'select_option', overrideEntityIds(this.prefix).target, { option: target });
+      if (!changed) this.overrideTarget = previous;
+    }
+  }
+
+  private async executeOverride(action: 'on' | 'off' | 'release') {
+    const ids = overrideEntityIds(this.prefix);
+    const target = this.overrideTarget || this.hass?.states[ids.target]?.state;
     const status = this.hass?.states[ids.state];
     const entityId = ids[action];
     if (!target || !canSelectOverride(this.hass, this.prefix, target) || !this.actionAvailable(entityId)) return;
     if (action !== 'release' && status?.attributes.override_available !== true) return;
     if (action === 'release' && status?.attributes.control_mode === 'guided') return;
-    const actionLabel = action === 'on' ? 'Forcer en marche' : action === 'off' ? 'Forcer à l’arrêt' : 'Terminer le forçage';
     const duration = this.overrideDuration ?? Number(this.hass?.states[ids.duration]?.state);
     if (action !== 'release' && (!Number.isInteger(duration) || duration < 1 || duration > 1440)) {
       this.error = 'Définir une durée valide entre 1 et 1 440 minutes.';
       return;
     }
-    if (!window.confirm(`${actionLabel} ${target}${action === 'release' ? '' : ` pendant ${duration} min`} ? Flow.io conserve la responsabilité des protections.`)) return;
+    this.error = '';
     if (action !== 'release' && Number(this.hass?.states[ids.duration]?.state) !== duration) {
-      await this.invoke('number', 'set_value', ids.duration, { value: duration });
-      if (this.error) return;
+      if (!await this.invoke('number', 'set_value', ids.duration, { value: duration })) return;
     }
-    await this.invoke('button', 'press', entityId);
+    if (await this.invoke('button', 'press', entityId)) this.closeOverride();
   }
 
   private operationsView() {
@@ -136,8 +218,7 @@ class FlowioFirmwarePanel extends LitElement {
     const currentDuration = this.overrideDuration ?? Number(duration?.state);
     const forced = status?.attributes.control_mode !== 'guided' && !!status;
     return html`
-      <section class="panel operations-panel" data-panel="operations">
-        <h3><ha-icon icon="mdi:gesture-tap-button" aria-hidden="true"></ha-icon>Actions Flow.io</h3>
+      <div class="operations-panel" data-panel="operations">
         ${actions.length ? html`<div class="action-grid">${actions.map(operation => {
           const definition = OPERATION_DEFINITIONS[operation];
           const entityId = operationEntityId(this.prefix, operation);
@@ -148,21 +229,31 @@ class FlowioFirmwarePanel extends LitElement {
             <small>${!state ? 'Entité absente' : !available(state) ? 'Indisponible' : 'Confirmer avant exécution'}</small></button>`;
         })}</div>` : nothing}
         ${showOverride ? html`
-          <div class="override" data-panel="timed-override">
-            <h4>Forçage temporaire d’un équipement</h4>
-            <label>Équipement
-              <select .value=${target?.state ?? ''} ?disabled=${!available(target) || !!this.busy}
-                @change=${(event: Event) => this.setTarget(event)}>
-                ${!options.length ? html`<option value="">Aucune cible disponible</option>` : nothing}
-                ${options.map(option => html`<option value=${option}>${option}</option>`)}
-              </select>
-            </label>
-            <label>Durée (minutes)
-              <input type="number" min="1" max="1440" step="1"
-                .value=${Number.isInteger(currentDuration) ? String(currentDuration) : ''}
-                ?disabled=${!available(duration) || !!this.busy}
-                @change=${(event: Event) => this.setDuration(event)}>
-            </label>
+          <ha-button class="override-trigger" data-open-override appearance="outlined"
+            aria-haspopup="dialog" aria-expanded=${this.overrideOpened ? 'true' : 'false'}
+            .disabled=${!this.ready} .accessibleLabel=${'Ouvrir le forçage temporaire'}
+            @click=${() => this.openOverride()}>
+            <ha-icon slot="start" icon="mdi:timer-cog-outline" aria-hidden="true"></ha-icon>
+            Forçage temporaire
+            <span class="override-trigger-state">${forced ? 'Actif' : 'Pilotage guidé'}</span>
+          </ha-button>
+          <ha-dialog class="override-dialog" data-panel="timed-override"
+            .open=${this.overrideOpened && this.ready}
+            .headerTitle=${'Forçage temporaire'}
+            .heading=${'Forçage temporaire'}
+            @closed=${(event: Event) => { if (event.target === event.currentTarget) this.closeOverride(); }}>
+            <div class="override-content">
+              <p class="override-intro">Choisir un équipement et la durée du forçage. Flow.io conserve la responsabilité des sécurités.</p>
+              <ha-form class="override-form" .hass=${h}
+                .data=${{ target: this.overrideTarget || target?.state || '', duration: currentDuration }}
+                .disabled=${!this.ready || !available(target) || !available(duration) || !options.length || !!this.busy}
+                .schema=${[
+                  { name: 'target', selector: { select: { mode: 'dropdown', options } } },
+                  { name: 'duration', selector: { number: { min: 1, max: 1440, step: 1, mode: 'box' } } }
+                ]}
+                .computeLabel=${(field: { name: string }) => field.name === 'target' ? 'Équipement' : 'Durée (minutes)'}
+                @value-changed=${(event: CustomEvent<{ value?: Record<string, unknown> }>) => this.updateOverrideForm(event)}>
+              </ha-form>
             <p class="override-state" data-state=${status?.state ?? 'missing'}>
               ${!status ? 'État du forçage absent' : !available(status) ? 'État du forçage indisponible' : forced
                 ? `Forçage actif · ${String(status.attributes.control_mode ?? status.state)}`
@@ -171,24 +262,40 @@ class FlowioFirmwarePanel extends LitElement {
                 ? html` · ${Math.ceil(Number(status?.attributes.override_remaining_s) / 60)} min restantes`
                 : nothing}
             </p>
-            <div class="action-grid override-actions">
+              <div class="override-actions">
               ${(['on', 'off', 'release'] as const).map(action => {
                 const entityId = ids[action];
                 const entity = h?.states[entityId];
-                const enabled = this.actionAvailable(entityId) && !!target && options.includes(target.state) &&
+                const enabled = this.actionAvailable(entityId) && !!this.overrideTarget && options.includes(this.overrideTarget) &&
                   (action === 'release' ? forced : status?.attributes.override_available === true);
-                return html`<button type="button" class="action-button" data-override=${action}
-                  ?disabled=${!enabled || !!this.busy} @click=${() => this.override(action)}>
-                  ${action === 'on' ? 'Forcer ON' : action === 'off' ? 'Forcer OFF' : 'Terminer'}
-                  <small>${!entity ? 'Entité absente' : !this.actionAvailable(entityId) ? 'Indisponible' : ''}</small>
-                </button>`;
+                const label = action === 'on' ? 'Forcer en marche' : action === 'off' ? 'Forcer à l’arrêt' : 'Terminer le forçage';
+                return html`<ha-button class="override-action" data-override=${action}
+                  appearance=${action === 'on' ? 'accent' : action === 'off' ? 'outlined' : 'plain'}
+                  .disabled=${!this.ready || !enabled || !!this.busy}
+                  .accessibleLabel=${label} @click=${() => this.requestOverride(action)}>
+                  ${label}
+                  ${!entity || !this.actionAvailable(entityId) ? html`<small>${!entity ? 'Entité absente' : 'Indisponible'}</small>` : nothing}
+                </ha-button>`;
               })}
             </div>
-            <button type="button" class="more" ?disabled=${!duration}
-              @click=${() => this.more(ids.duration)}>Régler la durée dans Home Assistant</button>
-            <p class="note">La sélection est commune à Home Assistant. Un acquittement confirme la demande, pas la marche réelle. Utiliser uniquement sur un contrôleur Flow.io compatible.</p>
-          </div>` : nothing}
-      </section>`;
+            ${this.overrideConfirmation ? html`
+              <ha-alert class="override-confirm-prompt" alert-type="warning">
+                Confirmer « ${this.overrideConfirmation === 'on' ? 'Forcer en marche' : this.overrideConfirmation === 'off' ? 'Forcer à l’arrêt' : 'Terminer le forçage'} »
+                pour ${this.overrideTarget}${this.overrideConfirmation === 'release' ? '' : ` pendant ${currentDuration} min`} ?
+                Flow.io conserve la responsabilité des sécurités.
+              </ha-alert>
+              <div class="override-confirmation">
+                <ha-button class="override-action" data-cancel-override appearance="plain"
+                  .accessibleLabel=${'Annuler le forçage'} @click=${() => this.cancelOverride()}>Annuler</ha-button>
+                <ha-button class="override-action" data-confirm-override appearance="accent"
+                  .disabled=${!!this.busy} .accessibleLabel=${'Confirmer le forçage'}
+                  @click=${() => this.confirmOverride()}>Confirmer</ha-button>
+              </div>` : nothing}
+              ${this.error ? html`<ha-alert class="override-error" alert-type="error">${this.error}</ha-alert>` : nothing}
+              <p class="note">La sélection est commune à Home Assistant. L’acceptation d’une commande ne confirme pas la marche réelle. Utiliser uniquement avec un contrôleur Flow.io compatible.</p>
+            </div>
+          </ha-dialog>` : nothing}
+      </div>`;
   }
 
   private valuesView() {
@@ -226,24 +333,40 @@ class FlowioFirmwarePanel extends LitElement {
     ) || this.calculatedValues.length || this.deviceMetrics.length;
     if (!hasPanel) return nothing;
     return html`<div class="firmware-panels">
-      ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
+      ${this.error && !this.overrideOpened ? html`<p class="error" role="alert">${this.error}</p>` : nothing}
       ${this.operationsView()}${this.valuesView()}
     </div>`;
   }
 
   static styles = css`
-    :host{display:block;min-width:0}.firmware-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px;margin-top:14px}
+    :host{display:block;min-width:0}.firmware-panels{display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px;margin-top:14px}
     .panel{min-width:0;padding:14px 16px;border:1px solid var(--divider-color);border-radius:18px;background:var(--fio-surface)}
+    .operations-panel{display:grid;flex:0 1 auto;align-content:start;gap:8px;min-width:0;padding:0;border:0;background:transparent}
+    .panel[data-panel=values]{flex:1 1 320px}
     h3{display:flex;align-items:center;gap:8px;margin:0 0 12px;font-size:.95rem;font-weight:650}h3 ha-icon{color:var(--fio-water)}
     h4{margin:0 0 10px;font-size:.84rem}.action-grid,.value-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:8px}
-    .action-button,.value-tile,.more{font:inherit;color:var(--primary-text-color);background:var(--secondary-background-color);border:1px solid var(--divider-color);border-radius:12px;padding:10px;text-align:left}
+    .action-button,.value-tile{font:inherit;color:var(--primary-text-color);background:var(--secondary-background-color);border:1px solid var(--divider-color);border-radius:12px;padding:10px;text-align:left}
     .action-button{display:flex;flex-direction:column;gap:4px;cursor:pointer;font-size:.78rem;font-weight:600}.action-button small{font-size:.64rem;font-weight:400;color:var(--secondary-text-color)}
-    button:disabled,select:disabled,input:disabled{opacity:.55;cursor:not-allowed}.value-tile{display:flex;flex-direction:column;gap:4px;cursor:pointer;min-width:0}
+    button:disabled{opacity:.55;cursor:not-allowed}.value-tile{display:flex;flex-direction:column;gap:4px;cursor:pointer;min-width:0}
     .value-tile span{font-size:.68rem;color:var(--secondary-text-color)}.value-tile strong{font-size:.85rem;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-    .value-tile small{font-size:.7rem;font-weight:400;color:var(--secondary-text-color)}.override{display:grid;gap:9px;margin-top:14px;padding-top:12px;border-top:1px solid var(--divider-color)}
-    label{display:grid;gap:5px;font-size:.7rem;color:var(--secondary-text-color)}select,input{box-sizing:border-box;width:100%;min-height:38px;padding:7px 9px;border:1px solid var(--divider-color);border-radius:9px;background:var(--primary-background-color);color:var(--primary-text-color);font:inherit}
-    .override-state{margin:0;font-size:.75rem;font-weight:600}.override-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
-    .more{justify-self:start;cursor:pointer;font-size:.7rem}.note{margin:7px 0 0;font-size:.64rem;line-height:1.45;color:var(--secondary-text-color)}.error{grid-column:1/-1;color:var(--error-color);margin:0}
+    .value-tile small{font-size:.7rem;font-weight:400;color:var(--secondary-text-color)}
+    .override-trigger{--ha-button-height:42px;display:flex;width:max-content;max-width:100%;justify-content:flex-start;margin:0;color:var(--primary-text-color)}
+    .override-trigger::part(base){box-sizing:border-box;display:flex;justify-content:flex-start;gap:9px;max-width:100%;padding-inline:12px;border:1px solid var(--divider-color);border-radius:12px;background:var(--secondary-background-color);color:inherit;font:inherit;font-size:.78rem;font-weight:600}
+    .override-trigger ha-icon{--mdc-icon-size:19px;color:var(--fio-water,var(--primary-color))}
+    .override-trigger-state{margin-inline-start:auto;font-size:.68rem;font-weight:500;color:var(--secondary-text-color)}
+    .override-content{display:grid;gap:14px;min-width:min(360px,calc(100vw - 64px));max-width:520px;padding-block:4px}
+    .override-intro,.override-state{margin:0;font-size:.76rem;line-height:1.45}
+    .override-state{padding:10px 12px;border:1px solid var(--divider-color);border-radius:11px;background:var(--secondary-background-color);font-weight:600}
+    .override-form{display:block;width:100%;min-width:0}
+    .override-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+    .override-action{--ha-button-height:40px}
+    .override-action::part(base){min-width:112px;border-radius:11px}
+    .override-action[appearance=accent]::part(base){font-weight:650}
+    .override-action small{display:block;font-size:.62rem;font-weight:400;color:var(--secondary-text-color)}
+    .override-error{font-size:.76rem}
+    .override-confirm-prompt{font-size:.76rem;line-height:1.45}
+    .override-confirmation{display:flex;justify-content:flex-end;gap:8px}
+    .note{margin:0;font-size:.68rem;line-height:1.5;color:var(--secondary-text-color)}.error{grid-column:1/-1;color:var(--error-color);margin:0}
   `;
 }
 

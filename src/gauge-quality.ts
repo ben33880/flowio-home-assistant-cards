@@ -5,21 +5,19 @@ export interface GaugeQuality {tone:QualityTone;label:string;rangeLabel:string;b
 function toneAt(role:Role,value:number):QualityTone|undefined {
   if(role==='ph'){if(value>=7&&value<=7.4)return 'good';if((value>=6.8&&value<7)||(value>7.4&&value<=7.6))return 'medium';return 'bad';}
   if(role==='orp')return value>=650&&value<=750?'good':'outside';
-  if(role==='pressure')return value>=3&&value<=16?'good':'outside';
   return undefined;
 }
 function labelFor(tone:QualityTone,role:Role):string {
   if(role==='orp')return tone==='good'?'Dans la plage cible':'Hors plage cible';
-  if(role==='pressure')return tone==='good'?'Pression OK':'Hors plage OK';
   return tone==='good'?'Bon':tone==='medium'?'Moyen':'Mauvais';
 }
 export function qualityFor(role:Role,value:number|undefined,min:number,max:number):GaugeQuality|undefined {
-  if(!['ph','orp','pressure'].includes(role)||value===undefined||!Number.isFinite(value)||!Number.isFinite(min)||!Number.isFinite(max)||max<=min)return undefined;
+  if(!['ph','orp'].includes(role)||value===undefined||!Number.isFinite(value)||!Number.isFinite(min)||!Number.isFinite(max)||max<=min)return undefined;
   const tone=toneAt(role,value)!;
-  const boundaries=role==='ph'?[min,6.8,7,7.4,7.6,max]:role==='orp'?[min,650,750,max]:[min,3,16,max];
+  const boundaries=role==='ph'?[min,6.8,7,7.4,7.6,max]:[min,650,750,max];
   const points=[...new Set(boundaries.filter(point=>Number.isFinite(point)&&point>=min&&point<=max))].sort((a,b)=>a-b),bands:QualityBand[]=[];
   for(let i=0;i<points.length-1;i++){const from=points[i],to=points[i+1];if(to<=from)continue;const bandTone=toneAt(role,(from+to)/2);if(!bandTone)continue;const label=labelFor(bandTone,role),previous=bands[bands.length-1];if(previous&&previous.tone===bandTone&&previous.to===from)previous.to=to;else bands.push({from,to,tone:bandTone,label});}
-  const rangeLabel=role==='ph'?'Bon : 7,0–7,4 · moyen : 6,8–7,0 et 7,4–7,6':role==='orp'?'Plage cible : 650–750 mV':'Plage OK : 3–16 psi';
+  const rangeLabel=role==='ph'?'Bon : 7,0–7,4 · moyen : 6,8–7,0 et 7,4–7,6':'Plage cible : 650–750 mV';
   return {tone,label:labelFor(tone,role),rangeLabel,bands};
 }
 export function bandPath(from:number,to:number,min:number,max:number,radius=46){

@@ -40,11 +40,27 @@ test('actions firmware, forçage temporaire et télémétrie calculée',async({p
  await informationDialog.locator('ha-button.close').click();
  page.on('dialog',dialog=>{void dialog.accept();});
  await page.locator('[data-operation=refill_ph]').click();
+ const overrideButton=page.locator('[data-open-override]'),overrideDialog=page.locator('flowio-firmware-panel ha-dialog[data-panel=timed-override]');
+ await expect(page.locator('flowio-firmware-panel .panel[data-panel=operations]')).toHaveCount(0);
+ await expect(page.getByText('Actions Flow.io',{exact:true})).toHaveCount(0);
+ await expect(overrideButton).toBeVisible();await overrideButton.click();await expect(overrideDialog).toHaveJSProperty('open',true);
+ await expect(overrideDialog.locator('ha-form')).toBeVisible();
+ await overrideDialog.locator('ha-form select').selectOption('pd0');
+ await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls.length)).toBe(2);
  await page.locator('[data-panel=timed-override] input').fill('30');
  await page.locator('[data-override=on]').click();
+ await expect(overrideDialog.locator('[data-confirm-override]')).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls.length)).toBe(2);
+ await overrideDialog.locator('[data-cancel-override]').click();
+ await expect(overrideDialog.locator('[data-confirm-override]')).toHaveCount(0);
+ await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls.length)).toBe(2);
+ await page.locator('[data-override=on]').click();
+ await overrideDialog.locator('[data-confirm-override]').click();
  await expect.poll(()=>page.evaluate(()=>(window as any).demo.calls)).toEqual([
   {domain:'button',service:'press',data:{entity_id:'button.fio_pd_refill_ph'}},
+  {domain:'select',service:'select_option',data:{option:'pd0',entity_id:'select.fio_pdm_ovr_target'}},
   {domain:'number',service:'set_value',data:{value:30,entity_id:'number.fio_pdm_ovr_min'}},
   {domain:'button',service:'press',data:{entity_id:'button.fio_pdm_ovr_on'}}
  ]);
+ await expect(overrideDialog).toHaveJSProperty('open',false);
 });
