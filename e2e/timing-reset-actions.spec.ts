@@ -45,7 +45,8 @@ for (const width of [390, 1100]) {
       const actionBox = (await action.boundingBox())!;
       const rowBox = (await row.boundingBox())!;
       expect(actionBox.y).toBeGreaterThanOrEqual(runtimeBox.y + runtimeBox.height - 1);
-      expect(actionBox.y).toBeGreaterThanOrEqual(labelBox.y + labelBox.height - 1);
+      expect(Math.abs(actionBox.y + actionBox.height / 2 - labelBox.y - labelBox.height / 2)).toBeLessThanOrEqual(1);
+      expect(actionBox.x).toBeGreaterThanOrEqual(labelBox.x + labelBox.width - 1);
       expect(Math.abs(actionBox.x + actionBox.width - rowBox.x - rowBox.width)).toBeLessThanOrEqual(1);
     }
 
@@ -76,4 +77,60 @@ test('les actions de remise à zéro affichent leurs durées même sans sélecti
   await expect(timing.getByRole('heading', { name: 'Horaires & durées' })).toBeVisible();
   await expect(timing.locator('[data-runtime-item=ph_runtime] .runtime-reset')).toBeVisible();
   await expect(timing.locator('[data-runtime-item=filtration_runtime]')).toHaveCount(0);
+});
+
+test('les actions de réinitialisation ne sont pas affichées dans le panneau Actions Flow.io', async ({ page }) => {
+  await page.goto('/demo/');
+  await page.evaluate(() => {
+    const demo = (window as any).demo;
+    demo.config.display = {
+      ...demo.config.display,
+      timing: [],
+      calculated_values: [],
+      device_metrics: [],
+      operations: [
+        'reset_filtration',
+        'reset_ph',
+        'reset_disinfection',
+        'reset_filling',
+        'reset_electrolyzer',
+        'reset_all'
+      ]
+    };
+    demo.apply();
+  });
+
+  await expect(page.locator('flowio-pool-card flowio-firmware-panel [data-panel=operations]')).toHaveCount(0);
+});
+
+test('en mode électrolyse, la remise à zéro désinfection cible le compteur électrolyseur et le remplissage est masqué', async ({ page }) => {
+  await page.goto('/demo/');
+  await page.evaluate(() => {
+    const demo = (window as any).demo;
+    demo.hass.states['sensor.fio_data_146'] = { state: '1800', attributes: { unit_of_measurement: 's' } };
+    demo.hass.states['button.fio_pd_reset_upt_chl_gen'] = { state: 'unknown', attributes: {} };
+    demo.hass.states['button.fio_pd_reset_upt_chl'] = { state: 'unknown', attributes: {} };
+    demo.hass.states['button.fio_pd_refill_chl'] = { state: 'unknown', attributes: {} };
+    demo.config.display = {
+      ...demo.config.display,
+      treatment: 'electrolyzer',
+      tanks: ['disinfection_tank_percent'],
+      timing: [],
+      operations: ['refill_disinfection', 'reset_disinfection']
+    };
+    demo.apply();
+  });
+
+  const card = page.locator('flowio-pool-card');
+  await expect(card.locator('[data-tank-action=disinfection] [data-operation=refill_disinfection]')).toHaveCount(0);
+  const reset = card.locator('[data-runtime-item=disinfection_runtime] [data-operation=reset_disinfection]');
+  await expect(reset).toBeVisible();
+  await expect(reset).toHaveAttribute('data-firmware-operation', 'reset_electrolyzer');
+  await expect(card.locator('flowio-firmware-panel [data-operation=reset_electrolyzer]')).toHaveCount(0);
+
+  page.on('dialog', dialog => { void dialog.accept(); });
+  await reset.click();
+  await expect.poll(() => page.evaluate(() => (window as any).demo.calls)).toEqual([
+    { domain: 'button', service: 'press', data: { entity_id: 'button.fio_pd_reset_upt_chl_gen' } }
+  ]);
 });

@@ -22,6 +22,7 @@ class FlowioFirmwarePanel extends LitElement {
     deviceMetrics: { attribute: false },
     deviceSlot: { type: Number },
     operations: { attribute: false },
+    inlineOperations: { attribute: false },
     busy: { state: true },
     error: { state: true },
     overrideDuration: { state: true }
@@ -33,9 +34,16 @@ class FlowioFirmwarePanel extends LitElement {
   deviceMetrics: readonly DeviceMetric[] = [];
   deviceSlot = 0;
   operations: readonly Operation[] = [];
+  inlineOperations: readonly Operation[] = [];
   private busy = '';
   private error = '';
   private overrideDuration?: number;
+
+  private isActionPanelOperation(operation: Operation) {
+    return !operation.startsWith('reset_')
+      && !['timed_override', 'refill_ph', 'refill_disinfection'].includes(operation)
+      && !this.inlineOperations.includes(operation);
+  }
 
   private actionAvailable(entityId: string) {
     const state = this.hass?.states[entityId];
@@ -116,9 +124,7 @@ class FlowioFirmwarePanel extends LitElement {
   }
 
   private operationsView() {
-    const actions = this.operations.filter(operation =>
-      !['timed_override', 'refill_ph', 'refill_disinfection', 'reset_filtration', 'reset_ph', 'reset_disinfection'].includes(operation)
-    );
+    const actions = this.operations.filter(operation => this.isActionPanelOperation(operation));
     const showOverride = this.operations.includes('timed_override');
     if (!actions.length && !showOverride) return nothing;
     const h = this.hass;
@@ -216,7 +222,7 @@ class FlowioFirmwarePanel extends LitElement {
 
   render() {
     const hasPanel = this.operations.some(operation =>
-      !['refill_ph', 'refill_disinfection', 'reset_filtration', 'reset_ph', 'reset_disinfection'].includes(operation)
+      operation === 'timed_override' || this.isActionPanelOperation(operation)
     ) || this.calculatedValues.length || this.deviceMetrics.length;
     if (!hasPanel) return nothing;
     return html`<div class="firmware-panels">

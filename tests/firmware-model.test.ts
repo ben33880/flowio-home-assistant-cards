@@ -46,6 +46,15 @@ it('expose uniquement les opérations sélectionnées et vérifie les slots', ()
   expect(() => normalizeConfig({ display: { device_metrics: ['unknown'] } })).toThrow();
 });
 
+it('redirige les actions désinfection vers les actions électrolyse en mode électrolyse', () => {
+  const bindings = expectedBindings(normalizeConfig({
+    display: { treatment: 'electrolyzer', operations: ['refill_disinfection', 'reset_disinfection'] }
+  })).map(binding => binding.id);
+  expect(bindings).toContain('button.fio_pd_reset_upt_chl_gen');
+  expect(bindings).not.toContain('button.fio_pd_reset_upt_chl');
+  expect(bindings).not.toContain('button.fio_pd_refill_chl');
+});
+
 it('ne propose les cibles de forçage que si le sélecteur firmware les annonce', () => {
   const entityId = overrideEntityIds('fio').target;
   const hass = {

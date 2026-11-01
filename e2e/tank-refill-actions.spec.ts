@@ -31,11 +31,18 @@ for (const width of [390, 1100]) {
       await expect(action).toHaveAttribute('title', item.label);
       await expect(action).toHaveText('');
       await expect(action.locator('ha-icon')).toHaveJSProperty('icon', item.icon);
+      await expect(action).toHaveCSS('width', '44px');
+      await expect(action).toHaveCSS('height', '44px');
+      await expect(action).toHaveCSS('animation-name', 'none');
+      await expect(action).toHaveCSS('transition-property', 'none');
+      await expect(action.locator('ha-icon')).toHaveCSS('--mdc-icon-size', '20px');
       const gaugeBox = (await gauge.boundingBox())!;
       const actionBox = (await action.boundingBox())!;
+      const readingBox = (await gauge.locator('.reading strong').boundingBox())!;
+      expect(actionBox.width).toBeGreaterThanOrEqual(44);
+      expect(actionBox.height).toBeGreaterThanOrEqual(44);
       expect(actionBox.x).toBeGreaterThanOrEqual(gaugeBox.x + gaugeBox.width - 1);
-      expect(actionBox.y + actionBox.height).toBeGreaterThan(gaugeBox.y);
-      expect(actionBox.y).toBeLessThan(gaugeBox.y + gaugeBox.height);
+      expect(actionBox.y + actionBox.height / 2, item.operation).toBeCloseTo(readingBox.y + readingBox.height / 2, 0);
     }
 
     await expect(panel.locator('[data-operation^=refill_]')).toHaveCount(0);
