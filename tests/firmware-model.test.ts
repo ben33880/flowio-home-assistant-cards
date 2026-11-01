@@ -15,21 +15,23 @@ it('construit les entités calculées, équipement, réseau et système document
   const ids = expectedBindings(config).map(binding => binding.id);
   expect(ids).toContain('sensor.fio_io_value_v02');
   expect(ids).toContain('sensor.fio_data_291');
-  expect(ids).toContain('sensor.fio_data_296');
   expect(ids).toContain('sensor.fio_data_297');
+  expect(ids).toContain('sensor.fio_io_voltage');
+  expect(ids).toContain('sensor.fio_io_current');
   expect(ids).toContain('sensor.fio_wifi_ip');
   expect(ids).toContain('sensor.fio_wifi_rssi');
   expect(ids).toContain('sensor.fio_sys_upt_mn');
   expect(ids).toContain('sensor.fio_sys_hp_frag');
 });
 
-it('inclut la tension et le courant du slot sélectionné dans le système', () => {
+it('inclut les entités d’alimentation indépendamment du slot équipement', () => {
   const bindings = expectedBindings(normalizeConfig({
     device_slot: 4,
     display: { device_metrics: [], information: ['system'] }
   }));
-  expect(bindings).toContainEqual({ id: 'sensor.fio_data_328', label: 'Tension', unit: 'V' });
-  expect(bindings).toContainEqual({ id: 'sensor.fio_data_329', label: 'Courant', unit: 'A' });
+  expect(bindings).toContainEqual({ id: 'sensor.fio_io_voltage', label: 'Tension', unit: 'V' });
+  expect(bindings).toContainEqual({ id: 'sensor.fio_io_current', label: 'Courant', unit: 'A' });
+  expect(bindings.some(binding => binding.id === 'sensor.fio_data_328' || binding.id === 'sensor.fio_data_329')).toBe(false);
 });
 
 it('expose uniquement les opérations sélectionnées et vérifie les slots', () => {

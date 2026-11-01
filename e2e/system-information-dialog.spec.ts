@@ -14,8 +14,8 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
       'sensor.fio_wifi_rssi': { state: '-61', attributes: { unit_of_measurement: 'dBm', icon: 'mdi:wifi-strength-2' } },
       'sensor.fio_sys_upt_mn': { state: '120', attributes: { unit_of_measurement: 'min', icon: 'mdi:timer-outline' } },
       'sensor.fio_sys_hp_free': { state: '64000', attributes: { unit_of_measurement: 'bytes' } },
-      'sensor.fio_data_200': { state: '230', attributes: { unit_of_measurement: 'V', icon: 'mdi:flash' } },
-      'sensor.fio_data_201': { state: '12.5', attributes: { unit_of_measurement: 'A', icon: 'mdi:current-ac' } }
+      'sensor.fio_io_voltage': { state: '230', attributes: { unit_of_measurement: 'V', icon: 'mdi:flash' } },
+      'sensor.fio_io_current': { state: '12.5', attributes: { unit_of_measurement: 'A', icon: 'mdi:current-ac' } }
     });
     demo.config.display.information = [...demo.config.display.information, 'network', 'system'];
     demo.apply();
@@ -29,8 +29,8 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   await expect(triggerHost).toHaveAttribute('title', 'Système');
   const icon = triggerHost.locator('ha-icon');
   await expect(icon).toHaveAttribute('icon', 'mdi:information-outline');
-  await expect(triggerHost).toHaveCSS('width', '36px');
-  await expect(triggerHost).toHaveCSS('height', '36px');
+  await expect(triggerHost).toHaveCSS('width', '44px');
+  await expect(triggerHost).toHaveCSS('height', '44px');
   await expect(icon).toHaveCSS('--mdc-icon-size', '18px');
   await expect(triggerHost).toHaveCSS('animation-name', 'none');
   await expect(triggerHost).toHaveCSS('transition-property', 'background-color, color');
@@ -57,12 +57,14 @@ test('diagnostics système et réseau, avec signal Wi-Fi seulement si disponible
   await expect(dialog.locator('[data-group=network]')).toContainText('Entité absente');
   await expect(dialog.locator('[data-group=system]')).toContainText('120');
   await expect(dialog.locator('[data-group=system]')).toContainText('64000');
-  await expect(dialog.locator('[data-entity="sensor.fio_data_200"]')).toContainText('Tension');
-  await expect(dialog.locator('[data-entity="sensor.fio_data_200"]')).toContainText('230 V');
-  await expect(dialog.locator('[data-entity="sensor.fio_data_200"] ha-icon')).toHaveJSProperty('icon', 'mdi:flash');
-  await expect(dialog.locator('[data-entity="sensor.fio_data_201"]')).toContainText('Courant');
-  await expect(dialog.locator('[data-entity="sensor.fio_data_201"]')).toContainText('12.5 A');
-  await expect(dialog.locator('[data-entity="sensor.fio_data_201"] ha-icon')).toHaveJSProperty('icon', 'mdi:current-ac');
+  const power = dialog.locator('[data-group=power]');
+  await expect(power.locator('h3')).toContainText('Alimentation');
+  await expect(power.locator('[data-entity="sensor.fio_io_voltage"]')).toContainText('Tension');
+  await expect(power.locator('[data-entity="sensor.fio_io_voltage"]')).toContainText('230 V');
+  await expect(power.locator('[data-entity="sensor.fio_io_voltage"] ha-icon')).toHaveJSProperty('icon', 'mdi:flash');
+  await expect(power.locator('[data-entity="sensor.fio_io_current"]')).toContainText('Courant');
+  await expect(power.locator('[data-entity="sensor.fio_io_current"]')).toContainText('12.5 A');
+  await expect(power.locator('[data-entity="sensor.fio_io_current"] ha-icon')).toHaveJSProperty('icon', 'mdi:current-ac');
   await dialog.locator('[data-entity="sensor.fio_wifi_ip"]').click();
   await expect(page.locator('#events')).toContainText('sensor.fio_wifi_ip');
   await page.keyboard.press('Escape');

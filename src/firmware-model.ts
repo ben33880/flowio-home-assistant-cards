@@ -100,17 +100,19 @@ export function operationBindings(prefix: string, operations: readonly Operation
     : [{ id: operationEntityId(prefix, operation), label: OPERATION_DEFINITIONS[operation].label }]);
 }
 
-export function systemBindings(prefix: string, groups: readonly string[], deviceSlot = 0) {
+export function systemBindings(prefix: string, groups: readonly string[]) {
   const systemEntities = SYSTEM_ENTITIES
     .filter(([suffix]) => suffix.startsWith('wifi_') ? groups.includes('network') : groups.includes('system'))
     .map(([suffix, label]) => ({ id: systemEntityId(prefix, suffix), label }));
-  const deviceMetrics = groups.includes('system')
-    ? [
-      { ...deviceMetricBindings(prefix, deviceSlot, ['voltage'])[0], unit: 'V' },
-      { ...deviceMetricBindings(prefix, deviceSlot, ['current'])[0], unit: 'A' }
-    ]
-    : [];
-  return [...systemEntities, ...deviceMetrics];
+  return systemEntities;
+}
+
+export function powerBindings(prefix: string) {
+  const stem = prefix ? `${prefix}_` : '';
+  return [
+    { id: `sensor.${stem}io_voltage`, label: 'Tension', unit: 'V' },
+    { id: `sensor.${stem}io_current`, label: 'Courant', unit: 'A' }
+  ];
 }
 
 export function overrideOptions(hass: Hass | undefined, prefix: string): string[] {

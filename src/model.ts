@@ -24,6 +24,7 @@ import {
   deviceMetricBindings,
   operationBindings,
   systemBindings,
+  powerBindings,
   type Operation
 } from './firmware-model';
 
@@ -226,7 +227,8 @@ export function expectedBindings(c: PoolConfig, hass?: Hass) {
     ...calculatedBindings(c.entity_prefix, c.display.calculated_values),
     ...deviceMetricBindings(c.entity_prefix, c.device_slot, c.display.device_metrics),
     ...operationBindings(c.entity_prefix, configuredOperations(c, treatment)),
-    ...systemBindings(c.entity_prefix, c.display.information, c.device_slot)
+    ...systemBindings(c.entity_prefix, c.display.information),
+    ...(c.display.information.includes('system') ? powerBindings(c.entity_prefix) : [])
   ];
   if (c.display.equipment.includes('disinfection_pump') ||
       c.display.injections.includes('disinfection_injected') ||

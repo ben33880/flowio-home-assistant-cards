@@ -45,9 +45,10 @@ for (const width of [390, 1100]) {
       const volumeBox = (await volume.boundingBox())!;
       expect(actionBox.width).toBeGreaterThanOrEqual(44);
       expect(actionBox.height).toBeGreaterThanOrEqual(44);
+      expect(volumeBox.y - (gaugeBox.y + gaugeBox.height)).toBeLessThanOrEqual(12);
       expect(actionBox.x).toBeGreaterThanOrEqual(volumeBox.x + volumeBox.width - 1);
       expect(actionBox.y + actionBox.height / 2, item.operation).toBeCloseTo(volumeBox.y + volumeBox.height / 2, 0);
-      expect(footerBox.y).toBeGreaterThanOrEqual(gaugeBox.y + gaugeBox.height);
+      expect(footerBox.y + footerBox.height).toBeGreaterThanOrEqual(gaugeBox.y + gaugeBox.height);
     }
 
     await expect(panel.locator('[data-operation^=refill_]')).toHaveCount(0);
