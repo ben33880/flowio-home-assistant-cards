@@ -23,7 +23,7 @@ export async function preview(page: Page, freezeClock = false) {
     pool.before(grid);
     grid.append(pool);
     const history = document.createElement('flowio-history-card') as any;
-    history.setConfig({ entity_prefix: 'fio', title: 'Évolution de la piscine', measurements: ['water_temperature', 'ph', 'orp', 'pressure'] });
+    history.setConfig({ entity_prefix: 'fio', title: 'Évolution de la piscine', measurements: ['water_temperature', 'ph', 'orp', 'pressure'], calculated_values: [] });
     history.hass = {
       ...d.card.hass,
       callApi: async (_method: string, path: string) => {

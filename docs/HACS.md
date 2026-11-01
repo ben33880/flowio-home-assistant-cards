@@ -2,11 +2,11 @@
 
 ## Avant publication
 
-0.3.2 est préparée dans le dépôt, mais son brouillon n'a pas encore été créé et la version n'est pas publiée. Modifier package.json ou les notes ne constitue pas une release. Les versions antérieures et préversions restent inchangées.
+La version 0.3.2 a été construite. La version 0.3.3 est en préparation dans la branche de fonctionnalité ; son brouillon n'a pas encore été créé et elle n'est pas publiée. Modifier package.json ou les notes ne constitue pas une release.
 
 Voir [la procédure de release](RELEASE.md) : lockfile testé et fusionné, contrôle de l'interface HA, puis workflow stable qui crée uniquement un brouillon. La publication publique est manuelle et distincte.
 
-L'ancien workflow Publish HACS prerelease (manual) reste destiné aux beta : son lancement peut créer une préversion publique après tests. Ne pas le confondre avec la préparation d'une stable ; choisir une nouvelle version beta, jamais un tag déjà utilisé.
+Le workflow **Publish HACS prerelease (manual)** peut publier une beta depuis `main` ou une branche `feature/*`. Dans Actions, sélectionne le workflow, choisis la branche voulue dans le sélecteur de branche, puis lance-le avec une nouvelle version, par exemple `0.3.3-beta.1`. Il exécute les tests sur le commit de cette branche et crée une préversion publique, sans fusionner la branche. Ne pas le confondre avec la préparation d'une stable : celle-ci s'effectue depuis `main`. Choisir un nouveau numéro beta, jamais un tag déjà utilisé. Les autres noms de branches sont refusés.
 
 ## Après publication : HACS
 

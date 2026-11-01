@@ -1,6 +1,6 @@
 # Flow.io Home Assistant Cards
 
-Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. La version 0.3.2 est en préparation ; le brouillon de release et la publication restent des étapes distinctes. Les préversions existantes ne sont pas modifiées.
+Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-Waveshare. La version 0.3.2 a été construite ; la version 0.3.3 est en préparation. Le brouillon de release et la publication restent des étapes distinctes.
 
 | Carte Piscine — clair | Carte Piscine — sombre |
 |---|---|
@@ -15,7 +15,7 @@ Cartes de supervision et de pilotage pour les entités MQTT du firmware Flow.io-
 - `custom:flowio-pool-card` : jauges pH/ORP/pression, températures, équipements, modes, alarmes, cuves et frise de filtration.
 - `custom:flowio-history-card` : courbes ApexCharts alimentées par l'historique Home Assistant/Recorder.
 
-Les cartes reprennent le thème Home Assistant. Les équipements et modes utilisent le composant natif `ha-switch` de l'instance, sans interrupteur de remplacement dans le bundle de production.
+Les cartes reprennent le thème Home Assistant et les motifs visuels Flow.io déjà établis. Elles privilégient les composants natifs de l’instance, notamment `ha-switch`, `ha-button`, `ha-icon` et la carte native de titre ; aucun substitut de ces contrôles n’est inclus dans le bundle de production.
 
 ## Installation
 
@@ -27,16 +27,22 @@ Ressource attendue : `/hacsfiles/flowio-home-assistant-cards/flowio-home-assista
 
 ```yaml
 type: custom:flowio-pool-card
-title: Supervision & pilotage
+title: Supervision
 entity_prefix: fio
+grid_options:
+  columns: full
 display:
   measurements: [ph, orp, pressure, water_temperature, air_temperature]
   setpoints: [ph_setpoint, orp_setpoint]
   equipment: [filtration, ph_pump, disinfection_pump, lighting]
   modes: [filtration_auto, winter, ph_auto, disinfection_auto, heater_auto, disinfection_type, swg_control, ph_dose_plus, o2_temp_comp]
   tanks: [ph_tank_percent, disinfection_tank_percent]
-  information: [treatment_type, alarm_active, alarm_count, diagnostics]
   timing: [filtration_schedule, filtration_runtime, ph_runtime, disinfection_runtime]
+  operations: [refill_ph, refill_disinfection, timed_override]
+  values_telemetry: true
+  calculated_values: [v00, v01]
+  device_metrics: [water_in, water_out, current]
+  information: [treatment_type, alarm_active, alarm_count, diagnostics, network, system]
 tank_slots:
   ph: 1
   disinfection: 2
@@ -46,11 +52,15 @@ runtime_slots:
   disinfection: 2
 ```
 
-Choisir uniquement les éléments souhaités dans l'éditeur. Une liste vide masque le groupe. Les modes sont en outre filtrés selon les équipements cochés, sans effacer la sélection `display.modes` et sans changer un état du firmware. Par exemple, le pilotage électrolyseur apparaît seulement si `electrolyzer` est sélectionné.
+Toutes les options disponibles sont cochées par défaut dans les paramètres des deux cartes ; retirer celles qui ne sont pas utiles. La mesure dans « Qualité de l’eau » conserve le libellé ORP. Le traitement actif est déduit de l’entité firmware « Type de désinfection » ; le choix « Commande · type de désinfection » permet de le modifier. Le switch « Pompe désinfectant » pilote l’électrolyseur en mode électrolyse, ou la pompe désinfectant pour le chlore/brome et l’oxygène actif. En mode inconnu ou désactivé, les commandes dépendantes du traitement sont indisponibles. Le switch autonome de l’électrolyseur n’est plus affiché. Une liste vide masque le groupe. Les modes sont filtrés selon les équipements cochés et le mode firmware actif, sans effacer la sélection `display.modes`. « Valeurs et télémétrie » est contrôlable avec `display.values_telemetry`, occupe toute la largeur, s’aligne à gauche avec « Qualité de l’eau » et apparaît après les horaires.
+
+Dans une vue Sections, `grid_options: { columns: full }` fait occuper à la carte toute la largeur de sa section par défaut lors de son ajout.
 
 Le préfixe vaut `fio` par défaut : `piscine` construit `sensor.piscine_io_ph`. Un préfixe vide est accepté. Les noms métier du firmware sont conservés ; aucun choix automatique d'une entité suffixée `_2`.
 
 Les anciens champs `entities`, `features`, `show_tanks`, `treatment` et `measurements` au premier niveau de la synthèse sont rejetés. Recréer les anciennes configurations avec `display`. Pour les historiques, `measurements` reste au premier niveau.
+
+Pour compatibilité, l’ancien champ `display.treatment` n’empêche pas le chargement d’une carte, mais n’a plus d’effet ; le mode actif vient de `select.<préfixe>_pl_modes_dis`.
 
 ## Historiques
 
@@ -59,13 +69,19 @@ type: custom:flowio-history-card
 entity_prefix: fio
 hours_to_show: 24
 measurements: [water_temperature, ph, orp, pressure]
+calculated_values: [v00, v01]
 ```
 
-Le Recorder doit fournir les historiques des entités choisies. La carte ne remplace pas sa configuration.
+Le Recorder doit fournir les historiques des entités choisies. Les valeurs calculées peuvent aussi être affichées dans la carte piscine avec `display.calculated_values`. La carte ne remplace pas la configuration du Recorder.
 
 ## Commandes et limites
 
 - Consulter une valeur ouvre les informations de l'entité ; changer un contrôle peut commander la piscine.
+- Si `network` ou `system` est sélectionné dans `display.information`, une icône discrète « Système » apparaît juste après le titre « Supervision » ; les badges « Traitement » et « Alertes » sont alignés à droite. Le bouton est utilisable au toucher sur mobile. Le dialogue présente les informations réseau et système ; la ligne « Signal Wi-Fi » apparaît uniquement si sa valeur est disponible. Les icônes proviennent des entités Home Assistant ; tension (V) et courant (A) sont lus depuis `sensor.<préfixe>_io_voltage` et `sensor.<préfixe>_io_current`, indépendamment de `device_slot`.
+- Les actions de remplissage sélectionnées apparaissent sous forme d’icônes avec infobulle à côté des jauges des cuves pH et désinfectant. Les remises à zéro sélectionnées pour filtration, pH et désinfection apparaissent sous leur durée correspondante dans « Horaires & durées ». Une durée est affichée automatiquement si son action de remise à zéro est sélectionnée. Les actions gardent leur confirmation et sont omises du panneau général lorsqu’elles sont placées auprès de leur valeur.
+- Les autres boutons s’affichent uniquement lorsqu’ils sont sélectionnés. Le forçage temporaire s’ouvre dans une boîte de dialogue Home Assistant avec le formulaire et les commandes disponibles du firmware ; sa sélection est globale et partagée entre utilisateurs.
+- La pression est affichée et historisée sans conversion, telle que fournie par l’entité firmware. Son échelle visuelle par défaut est numérique (0,15–1,8), sans hypothèse d’unité ni zone de qualité.
+- La télémétrie d’équipement et les valeurs calculées sont en lecture seule. Les métriques équipement utilisent `device_slot` (0–15) ; vérifier l’affectation dans Flow.io. Les informations réseau et le diagnostic système s’ajoutent via `display.information`.
 - Les démarrages sensibles et certains changements de stratégie demandent confirmation.
 - Un appel de service accepté ne confirme pas physiquement la marche d'un appareil. Les modes affichés suivent le retour d'état Home Assistant.
 - Désactiver un automatisme ne signifie pas nécessairement arrêter sa sortie.
@@ -93,7 +109,7 @@ Le lockfile est versionné et utilisé par la CI et les releases avec `npm ci`. 
 
 La démo utilise des données fictives et un substitut de `ha-switch` limité à `demo/`. Elle ne valide ni le véritable frontend HA ni le matériel. Les tests ne commandent aucun équipement réel.
 
-Voir [procédure de release](docs/RELEASE.md) et [notes 0.3.2](docs/releases/v0.3.2.md). Le workflow stable crée uniquement un brouillon après validation ; la publication reste une action manuelle distincte.
+Voir [procédure de release](docs/RELEASE.md) et [notes 0.3.3](docs/releases/v0.3.3.md). Le workflow stable crée uniquement un brouillon après validation ; la publication reste une action manuelle distincte.
 
 ## Licence
 
