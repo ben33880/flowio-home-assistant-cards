@@ -29,7 +29,7 @@ test('actions firmware, forçage temporaire et télémétrie calculée',async({p
   'sensor.fio_data_195':{state:'28.1',attributes:{unit_of_measurement:'°C'}},
   'sensor.fio_wifi_ip':{state:'192.0.2.10',attributes:{}},
   'sensor.fio_sys_upt_mn':{state:'120',attributes:{unit_of_measurement:'min'}}
- });d.config.display={...d.config.display,equipment:[],information:['network','system'],operations:['refill_ph','timed_override'],calculated_values:['v00'],device_metrics:['water_in']};d.apply();});
+ });d.config.display={...d.config.display,equipment:[],tanks:['ph_tank_percent','disinfection_tank_percent'],information:['network','system'],operations:['refill_ph','timed_override'],calculated_values:['v00'],device_metrics:['water_in']};d.apply();});
  await expect(page.locator('[data-entity="sensor.fio_io_value_v00"]')).toContainText('12.4');
  await expect(page.locator('[data-entity="sensor.fio_data_195"]')).toContainText('28.1');
  const information=page.locator('flowio-header-status'),informationDialog=information.locator('ha-dialog.information-dialog');

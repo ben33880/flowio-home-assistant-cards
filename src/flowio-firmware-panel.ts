@@ -67,7 +67,8 @@ class FlowioFirmwarePanel extends LitElement {
     }
   }
 
-  private async press(operation: Operation) {
+  async runOperation(operation: Operation) {
+    if (!this.operations.includes(operation) || this.busy) return;
     const definition = OPERATION_DEFINITIONS[operation];
     const entityId = operationEntityId(this.prefix, operation);
     if (!this.actionAvailable(entityId)) return;
@@ -115,7 +116,9 @@ class FlowioFirmwarePanel extends LitElement {
   }
 
   private operationsView() {
-    const actions = this.operations.filter(operation => operation !== 'timed_override');
+    const actions = this.operations.filter(operation =>
+      !['timed_override', 'refill_ph', 'refill_disinfection', 'reset_filtration', 'reset_ph', 'reset_disinfection'].includes(operation)
+    );
     const showOverride = this.operations.includes('timed_override');
     if (!actions.length && !showOverride) return nothing;
     const h = this.hass;
@@ -135,7 +138,7 @@ class FlowioFirmwarePanel extends LitElement {
           const state = h?.states[entityId];
           return html`<button type="button" class="action-button" data-operation=${operation}
             ?disabled=${!this.actionAvailable(entityId) || !!this.busy}
-            @click=${() => this.press(operation)}>${definition.label}
+            @click=${() => this.runOperation(operation)}>${definition.label}
             <small>${!state ? 'Entité absente' : !available(state) ? 'Indisponible' : 'Confirmer avant exécution'}</small></button>`;
         })}</div>` : nothing}
         ${showOverride ? html`
@@ -212,7 +215,9 @@ class FlowioFirmwarePanel extends LitElement {
   }
 
   render() {
-    const hasPanel = this.operations.length || this.calculatedValues.length || this.deviceMetrics.length;
+    const hasPanel = this.operations.some(operation =>
+      !['refill_ph', 'refill_disinfection', 'reset_filtration', 'reset_ph', 'reset_disinfection'].includes(operation)
+    ) || this.calculatedValues.length || this.deviceMetrics.length;
     if (!hasPanel) return nothing;
     return html`<div class="firmware-panels">
       ${this.error ? html`<p class="error" role="alert">${this.error}</p>` : nothing}

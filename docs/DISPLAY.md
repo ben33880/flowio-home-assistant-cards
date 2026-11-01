@@ -27,7 +27,7 @@ Les litres et pourcentages utilisent les slots configurés dans tank_slots, sans
 
 ## Entités firmware complémentaires
 
-Les actions utilisent les boutons MQTT Discovery documentés par Flow.io : `button.<préfixe>_pd_refill_ph`, `pd_refill_chl`, `pd_reset_upt_flt`, `pd_reset_upt_ph`, `pd_reset_upt_chl`, `pd_reset_upt_fill`, `pd_reset_upt_chl_gen` et `pd_reset_upt_all`. Elles sont désactivées si l’entité manque ou est indisponible et demandent confirmation avant `button.press`.
+Les actions utilisent les boutons MQTT Discovery documentés par Flow.io : `button.<préfixe>_pd_refill_ph`, `pd_refill_chl`, `pd_reset_upt_flt`, `pd_reset_upt_ph`, `pd_reset_upt_chl`, `pd_reset_upt_fill`, `pd_reset_upt_chl_gen` et `pd_reset_upt_all`. Les icônes de remplissage pH et désinfectant apparaissent à côté de leurs jauges respectives. Les remises à zéro de filtration, pH et désinfectant apparaissent en icône avec infobulle sous leur durée dans « Horaires & durées » ; leur sélection affiche aussi la durée associée. Ces actions sont désactivées si l’entité manque ou est indisponible et demandent confirmation avant `button.press`.
 
 Le forçage temporaire emploie les entités communes `select.<préfixe>_pdm_ovr_target`, `number.<préfixe>_pdm_ovr_min`, `sensor.<préfixe>_pdm_ovr_state` et `button.<préfixe>_pdm_ovr_{on,off,release}`. Le sélecteur reprend uniquement les choix publiés par le firmware. Sa sélection est globale et partagée entre utilisateurs ; une action acceptée n’atteste pas de la marche physique. Les protections et règles de durée restent dans Flow.io.
 
@@ -35,7 +35,7 @@ Les mesures calculées utilisent `sensor.<préfixe>_io_value_v00` à `v04`; leur
 
 Les métriques équipement utilisent `sensor.<préfixe>_data_<176 + 32 × device_slot + metric_id>`, conformément au catalogue firmware. Les mesures disponibles comprennent `water_in`, `water_out`, `compressor_in`, `compressor_out`, `ambient`, `coil`, `voltage`, `current` et d’autres métriques numériques. Le slot est physique, pas le rôle de la piscine : vérifier la liaison dans le firmware.
 
-`network` et `system` affichent les entités Discovery IP/MAC/RSSI, uptime, mémoire libre/minimale et fragmentation dans une fenêtre dédiée. Son bouton « Système & Wi-Fi » apparaît à côté de l’en-tête « Supervision & pilotage » si au moins un de ces groupes est sélectionné. Les listes choisies restent ajoutées au diagnostic des entités ; les valeurs absentes sont explicites, jamais remplacées par zéro.
+`network` et `system` affichent les entités Discovery IP/MAC/RSSI, uptime, mémoire libre/minimale et fragmentation dans une fenêtre dédiée. Les lignes reprennent les icônes `icon` fournies par les entités du firmware dans Home Assistant. Le groupe `system` comprend aussi la tension (V) et le courant (A) du slot défini par `device_slot`, même si ces métriques ne sont pas cochées dans `display.device_metrics`. Une icône native Home Assistant apparaît juste après l’en-tête « Supervision & pilotage » si au moins un de ces groupes est sélectionné ; son infobulle indique « Système et réseau Wi-Fi ». Les listes choisies restent ajoutées au diagnostic des entités ; les valeurs absentes sont explicites, jamais remplacées par zéro.
 
 ## Rupture de configuration
 
